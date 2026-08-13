@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { hasInstitutionRole, useInstitutions } from "../hooks/useInstitutions";
+import { useInstitutions } from "../hooks/useInstitutions";
 import { useAuth } from "../lib/auth";
 import type { Institution, InstitutionRole } from "../lib/types";
 import { LoadingState } from "./ui";
@@ -10,8 +10,14 @@ export function userHasAnyRole(
   allowedRoles: InstitutionRole[],
 ) {
   if (!institutions?.length || !walletAddress) return false;
+  const normalizedWallet = walletAddress.toLowerCase();
   return institutions.some((institution) =>
-    allowedRoles.some((role) => hasInstitutionRole(institution, walletAddress, role)),
+    institution.members.some(
+      (member) =>
+        member.wallet_address.toLowerCase() === normalizedWallet &&
+        member.status === "active" &&
+        allowedRoles.includes(member.role),
+    ),
   );
 }
 

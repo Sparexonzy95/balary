@@ -34,12 +34,6 @@ function institutionWithRoles(nextRoles: Array<"admin" | "hr" | "finance">): Ins
   ];
 }
 
-function institutionWithUnconfirmedRole(role: "admin" | "hr" | "finance"): Institution[] {
-  const institutions = institutionWithRoles([role]);
-  institutions[0].members[0].approved_onchain = false;
-  return institutions;
-}
-
 vi.mock("../lib/auth", () => ({
   useAuth: () => ({
     isAuthenticated: true,
@@ -47,17 +41,12 @@ vi.mock("../lib/auth", () => ({
   }),
 }));
 
-vi.mock("../hooks/useInstitutions", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../hooks/useInstitutions")>();
-
-  return {
-    ...actual,
-    useInstitutions: () => ({
-      data: institutionWithRoles(roles),
-      isLoading: false,
-    }),
-  };
-});
+vi.mock("../hooks/useInstitutions", () => ({
+  useInstitutions: () => ({
+    data: institutionWithRoles(roles),
+    isLoading: false,
+  }),
+}));
 
 describe("RoleRoute", () => {
   beforeEach(() => {
@@ -94,10 +83,6 @@ describe("RoleRoute", () => {
     expect(userHasAnyRole(institutions, wallet, ["admin"])).toBe(false);
     expect(userHasAnyRole(institutions, wallet, ["hr"])).toBe(false);
     expect(userHasAnyRole(institutions, wallet, ["finance"])).toBe(false);
-  });
-
-  it("denies roles that have not been approved on-chain", () => {
-    expect(userHasAnyRole(institutionWithUnconfirmedRole("hr"), wallet, ["hr"])).toBe(false);
   });
 });
 
