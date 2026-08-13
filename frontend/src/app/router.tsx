@@ -28,7 +28,6 @@ import {
   LoginPage,
   RegisterInstitutionPage,
   RolesPage,
-  TransactionsPage,
 } from "../pages";
 
 export const router = createBrowserRouter([
@@ -77,7 +76,6 @@ export const router = createBrowserRouter([
           { path: "/employee/claims", element: <PrivateWithdrawalsPage /> },
           { path: "/employee/claims/new", element: <NewPrivateWithdrawalPage /> },
           { path: "/employee/claims/:paymentId", element: <PrivateWithdrawalDetailPage /> },
-          { path: "/transactions", element: <TransactionsPage /> },
           { path: "/notifications", element: <NotificationsPage /> },
           { path: "/account", element: <AccountPage /> },
         ],

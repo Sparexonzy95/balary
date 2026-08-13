@@ -505,60 +505,50 @@ export function PrivateWithdrawalDetailPage() {
           </div>
         </div>
 
-        <div className="run-detail-action-strip">
-          <div>
-            <strong>
-              {waitingForSignature
-                ? "Authorize with wallet"
-                : processable
-                  ? "Complete private settlement"
-                  : completed
-                    ? "Withdrawal finalized"
+        {!completed && (
+          <div className="run-detail-action-strip">
+            <div>
+              <strong>
+                {waitingForSignature
+                  ? "Authorize with wallet"
+                  : processable
+                    ? "Complete private settlement"
                     : withdrawalStatusText(item.status)}
-            </strong>
-            <span>
-              {waitingForSignature
-                ? "Sign the exact authorization digest with the employee wallet."
-                : processable
-                  ? "Resume the secure relayer and settlement workflow."
-                  : completed
-                    ? `Completed${item.completed_at ? ` on ${formatDate(item.completed_at)}` : ""}.`
+              </strong>
+              <span>
+                {waitingForSignature
+                  ? "Sign the exact authorization digest with the employee wallet."
+                  : processable
+                    ? "Resume the secure relayer and settlement workflow."
                     : `Current state: ${withdrawalStatusText(item.status)}.`}
-            </span>
-            <div className="stack">
-              <TransactionExplorerLink
-                hash={item.payroll_processing_tx_hash}
-                label="View payroll transaction"
-              />
-              <TransactionExplorerLink hash={item.request_tx_hash} label="View withdrawal request" />
-              <TransactionExplorerLink hash={item.finalization_tx_hash} label="View final settlement" />
+              </span>
             </div>
+
+            {waitingForSignature && (
+              <Button
+                type="button"
+                className="run-detail-primary-action"
+                onClick={signAuthorization}
+                disabled={submit.isPending}
+              >
+                <ShieldCheck size={16} />
+                {submit.isPending ? "Signing..." : "Sign authorization"}
+              </Button>
+            )}
+
+            {processable && (
+              <Button
+                type="button"
+                className="run-detail-primary-action"
+                onClick={processRequest}
+                disabled={process.isPending}
+              >
+                <RefreshCw size={16} />
+                {process.isPending ? "Processing..." : "Process withdrawal"}
+              </Button>
+            )}
           </div>
-
-          {waitingForSignature && (
-            <Button
-              type="button"
-              className="run-detail-primary-action"
-              onClick={signAuthorization}
-              disabled={submit.isPending}
-            >
-              <ShieldCheck size={16} />
-              {submit.isPending ? "Signing..." : "Sign authorization"}
-            </Button>
-          )}
-
-          {processable && (
-            <Button
-              type="button"
-              className="run-detail-primary-action"
-              onClick={processRequest}
-              disabled={process.isPending}
-            >
-              <RefreshCw size={16} />
-              {process.isPending ? "Processing..." : "Process withdrawal"}
-            </Button>
-          )}
-        </div>
+        )}
 
         {error && <div className="form-error">{error}</div>}
         {item.error_message && <div className="form-error">{item.error_message}</div>}
@@ -567,8 +557,17 @@ export function PrivateWithdrawalDetailPage() {
           items={[
             {
               title: "Private settlement",
-              status: withdrawalStatusText(item.status),
-              txHash: item.finalization_tx_hash || item.request_tx_hash,
+              status: completed ? `Finalized${item.completed_at ? ` on ${formatDate(item.completed_at)}` : ""}` : withdrawalStatusText(item.status),
+              ...(completed && {
+                txHashes: [
+                  item.payroll_processing_tx_hash && { hash: item.payroll_processing_tx_hash, label: "View payroll transaction" },
+                  item.request_tx_hash && { hash: item.request_tx_hash, label: "View withdrawal request" },
+                  item.finalization_tx_hash && { hash: item.finalization_tx_hash, label: "View final settlement" },
+                ].filter((tx): tx is { hash: string; label: string } => Boolean(tx)),
+              }),
+              ...(!completed && {
+                txHash: item.finalization_tx_hash || item.request_tx_hash,
+              }),
               tone: completed ? "complete" : isOpenWithdrawal(item) ? "active" : "idle",
               emptyLabel: proof ? shortAddress(proof) : "Pending",
             },

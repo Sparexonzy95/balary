@@ -64,7 +64,6 @@ import {
   useValidatePayroll,
   useUploadPayroll,
 } from "../hooks/usePayroll";
-import { useTransactions } from "../hooks/useTransactions";
 import { useTxSender } from "../hooks/useTxSender";
 import { LandingPage as PremiumLandingPage } from "./LandingPage";
 import { WelcomePage } from "./WelcomePage";
@@ -3123,15 +3122,17 @@ export function HRPayrollDetailPage() {
         </div>
       </section>
 
-      <section className="template-detail-runs-section">
-        <div className="template-detail-runs-head">
-          <div>
-            <h2>Payments</h2>
-            <span>{currentRun.payments?.length || 0} uploaded row{(currentRun.payments?.length || 0) === 1 ? "" : "s"}</span>
+      {currentRun.payments && currentRun.payments.length > 0 && (
+        <section className="template-detail-runs-section">
+          <div className="template-detail-runs-head">
+            <div>
+              <h2>Payments</h2>
+              <span>{currentRun.payments.length} uploaded row{currentRun.payments.length === 1 ? "" : "s"}</span>
+            </div>
           </div>
-        </div>
-        <PayrollPayments runId={runId} />
-      </section>
+          <PayrollPayments runId={runId} />
+        </section>
+      )}
     </div>
   );
 }
@@ -3584,45 +3585,6 @@ export function ClaimDetailPage() {
         <FormError message={error || txSender.lastError || (isClaimable && payload.error ? errorMessage(payload.error) : null)} />
       </section>
     </div>
-  );
-}
-
-export function TransactionsPage() {
-  const transactions = useTransactions();
-  return (
-    <>
-      <PageHeader eyebrow="Transactions" title="Tracked wallet transactions" description="Django tracks transaction hashes submitted from this wallet." />
-      <Card title="Recent transactions" eyebrow="Backend status">
-        {transactions.isLoading ? (
-          <LoadingState />
-        ) : transactions.data?.length ? (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Intent</th>
-                  <th>Hash</th>
-                  <th>Status</th>
-                  <th>Updated</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transactions.data.map((tx) => (
-                  <tr key={tx.id}>
-                    <td>{titleCase(tx.intent_type)}</td>
-                    <td><ExternalAnchor href={txExplorerUrl(tx.tx_hash)}>{shortAddress(tx.tx_hash)}</ExternalAnchor></td>
-                    <td><StatusBadge value={tx.status} /></td>
-                    <td>{formatDate(tx.updated_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <EmptyState title="No tracked transactions" description="Submitted wallet actions will appear here." />
-        )}
-      </Card>
-    </>
   );
 }
 

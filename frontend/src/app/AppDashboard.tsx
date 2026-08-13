@@ -11,7 +11,6 @@ import {
   Landmark,
   ListChecks,
   Menu,
-  ReceiptText,
   UserRound,
   X,
 } from "lucide-react";
@@ -47,7 +46,6 @@ const NAV_ITEMS: NavItem[] = [
     alwaysVisible: true,
   },
   { id: "notifications", to: "/notifications", label: "Notifications", icon: Bell, alwaysVisible: true },
-  { id: "transactions", to: "/transactions", label: "Transactions", icon: ReceiptText, alwaysVisible: true },
   { id: "account", to: "/account", label: "Account", icon: UserRound, alwaysVisible: true },
 ];
 
@@ -58,7 +56,6 @@ function dashboardTabFor(pathname: string) {
   if (pathname.startsWith("/finance")) return "finance";
   if (pathname.startsWith("/employee")) return "employee";
   if (pathname.startsWith("/notifications")) return "notifications";
-  if (pathname.startsWith("/transactions")) return "transactions";
   if (pathname.startsWith("/account")) return "account";
   return "institution";
 }
