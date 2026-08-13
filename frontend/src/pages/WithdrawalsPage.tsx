@@ -37,6 +37,7 @@ import {
   useToast,
 } from "../components/ui";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
+import { TransactionActivity } from "../components/TransactionActivity";
 
 const TERMINAL_WITHDRAWAL_STATUSES = new Set([
   "finalized",
@@ -562,25 +563,41 @@ export function PrivateWithdrawalDetailPage() {
         {error && <div className="form-error">{error}</div>}
         {item.error_message && <div className="form-error">{item.error_message}</div>}
 
-        <div className="claim-detail-premium-activity balary-proof-activity">
-          <div className="claim-detail-premium-activity-list">
-            <div className="claim-detail-premium-activity-table-head">
-              <span>Activity</span>
-              <span>Status</span>
-              <span>Proof</span>
-            </div>
-            <div className="claim-detail-premium-activity-row">
-              <span
-                className={`claim-detail-premium-activity-dot claim-detail-premium-activity-dot-${
-                  completed ? "complete" : isOpenWithdrawal(item) ? "active" : "idle"
-                }`}
-              />
-              <span className="claim-detail-premium-activity-name">Private settlement</span>
-              <strong className="claim-detail-premium-activity-status">{withdrawalStatusText(item.status)}</strong>
-              <small>{proof ? shortAddress(proof) : "Pending"}</small>
-            </div>
-          </div>
-        </div>
+        <TransactionActivity
+          items={[
+            {
+              title: "Payroll computation",
+              status: item.payroll_processing_tx_hash ? "Confirmed" : "Not available",
+              txHash: item.payroll_processing_tx_hash,
+              tone: item.payroll_processing_tx_hash ? "complete" : "idle",
+              emptyLabel: "No payroll transaction",
+            },
+            {
+              title: "Withdrawal request",
+              status: item.request_tx_hash
+                ? completed || item.finalization_tx_hash
+                  ? "Confirmed"
+                  : withdrawalStatusText(item.status)
+                : "Pending",
+              txHash: item.request_tx_hash,
+              tone: item.request_tx_hash ? (completed || item.finalization_tx_hash ? "complete" : "active") : "pending",
+              emptyLabel: "Waiting for request",
+            },
+            {
+              title: "Final settlement",
+              status: item.finalization_tx_hash
+                ? completed
+                  ? "Confirmed"
+                  : "Finalizing"
+                : completed
+                  ? "Confirmed"
+                  : "Pending",
+              txHash: item.finalization_tx_hash,
+              tone: item.finalization_tx_hash ? (completed ? "complete" : "active") : completed ? "complete" : "pending",
+              emptyLabel: completed ? "Completed" : "Waiting for finalization",
+            },
+          ]}
+        />
       </section>
     </div>
   );

@@ -90,7 +90,14 @@ export function useConfirmRegistration() {
       const response = await api.get<Record<string, unknown>>(routes.institutions.detail(payload.institution_id));
       return adaptInstitution(response.data);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["institutions"] }),
+    onSuccess: async (institution) => {
+      queryClient.setQueryData<Institution[]>(["institutions", "me"], (current) => {
+        if (!current) return [institution];
+        const next = current.filter((item) => item.id !== institution.id);
+        return [institution, ...next];
+      });
+      await queryClient.invalidateQueries({ queryKey: ["institutions"] });
+    },
   });
 }
 
