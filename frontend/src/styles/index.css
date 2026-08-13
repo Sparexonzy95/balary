@@ -1245,19 +1245,31 @@ a.address-pill:hover {
 
 .balary-wordmark,
 .balary-landing-wordmark {
-  display: block;
-  max-width: 100%;
-  height: auto;
-  object-fit: contain;
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.02em;
+  font-family: var(--z-display, "Mona Sans", system-ui, sans-serif);
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--z-text, #f5f5f1);
+  line-height: 1;
 }
 
 .balary-wordmark {
-  width: 2.3rem;
+  font-size: 1.35rem;
+  display: inline-flex;
+  white-space: nowrap;
+}
+
+.balary-wordmark span {
+  color: var(--z-accent, #fe9e15);
 }
 
 .balary-landing-wordmark {
-  width: 2.7rem;
+  width: 9.5rem;
+  height: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .mobile-menu-toggle {

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
-import balaryMark from "../../../../assets/balary-mark.svg";
 import { AnnouncementBar } from "./AnnouncementBar";
+
+const LANDING_LOGO = "https://res.cloudinary.com/dsbmr3xin/image/upload/v1786656190/bi_scp3ev.png";
 
 /* ---------------------------
    DATA
@@ -41,7 +42,7 @@ const mobileItem: Variants = {
 };
 
 function BrandMark() {
-  return <img src={balaryMark} alt="Balary" className="balary-landing-wordmark" aria-label="Balary" />;
+  return <img src={LANDING_LOGO} alt="Balary" className="balary-landing-wordmark" aria-label="Balary" />;
 }
 
 /* ---------------------------
