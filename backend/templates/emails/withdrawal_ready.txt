@@ -1,0 +1,7 @@
+{{ title }}
+
+{{ message }}
+
+Period: {{ period_label }}
+{% if expires_at %}Authorization expires: {{ expires_at }}{% endif %}
+{% if withdrawal_deadline %}Withdrawal deadline: {{ withdrawal_deadline }}{% endif %}

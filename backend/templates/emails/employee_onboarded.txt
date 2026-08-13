@@ -1,0 +1,6 @@
+{{ title }}
+
+{{ message }}
+
+Institution: {{ institution_name }}
+Employee reference: {{ employee_ref }}

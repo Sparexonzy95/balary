@@ -1,0 +1,29 @@
+# secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+*.pem
+*.key
+
+# JS
+node_modules/
+dist/
+coverage/
+
+# Hardhat
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# local data
+*.sqlite3
+*.log
+.DS_Store

@@ -1,0 +1,15 @@
+Zalary Milestone 5.2 sample-backend email fix
+
+Changed files:
+- apps/notifications/services.py
+- apps/notifications/tasks.py
+- apps/notifications/management/commands/send_test_email.py
+- apps/notifications/management/commands/send_test_notification.py
+- apps/notifications/tests/test_notifications.py
+- config/settings.py
+- EMAIL_DELIVERY_ARCHITECTURE.md
+- docs/OPERATIONS.md
+- MILESTONE_5_2_SAMPLE_EMAIL_FIX.md
+- scripts/verify_sample_email_fix.ps1
+
+No model migration was added. Live .env and db.sqlite3 are intentionally excluded.

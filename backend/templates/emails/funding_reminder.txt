@@ -1,0 +1,8 @@
+{{ title }}
+
+{{ message }}
+
+Institution: {{ institution_name }}
+Payroll: {{ payroll_title }}
+Period: {{ period_label }}
+Funding deadline: {{ funding_deadline }}

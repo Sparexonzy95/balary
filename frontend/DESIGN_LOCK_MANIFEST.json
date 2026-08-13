@@ -1,0 +1,10 @@
+{
+  "source": "samplefrontend.zip",
+  "policy": "The sample frontend visual layer is locked. CSS and favicon hashes must remain unchanged.",
+  "files": {
+    "src/styles/index.css": "d57359ca9b6d83bbe77f3ea3b3f266f7ef48ee2505dd318053a32ef85c2b9332",
+    "src/styles/tailwind.css": "c488638cd3e7e40d5981ad4bfabc26d1de41334bfc1d934a95064a22a79c86ca",
+    "src/pages/landing/styles.css": "a272026cb2af7b61e1654bbb59d37d2b925313957bbdd7f69590c6012f4af529",
+    "public/favicon.png": "367a5e03a7920200c126c2996a3c136ab5535bc9410294693fcfed213e69e007"
+  }
+}

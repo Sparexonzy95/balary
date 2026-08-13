@@ -1,0 +1,37 @@
+{
+  "name": "zalary-confidential-payroll-v3",
+  "version": "3.0.0",
+  "private": true,
+  "description": "Flare Confidential Compute payroll vault with stablecoin settlement",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "clean": "hardhat clean",
+    "deploy:coston2": "hardhat run scripts/deploy-core.ts --network coston2",
+    "configure:fcc:coston2": "hardhat run scripts/configure-fcc.ts --network coston2",
+    "pause:stale-tee:coston2": "hardhat run scripts/pause-stale-tee.ts --network coston2",
+    "verify:setup:coston2": "hardhat run scripts/verify-setup.ts --network coston2",
+    "test:security": "hardhat test test/ZalaryConfidentialPayrollV3.test.ts",
+    "test:smoke": "hardhat test test/ZalaryConfidentialPayrollV3.test.ts",
+    "test:deployment": "hardhat test test/01.DeploymentAndConfiguration.test.ts",
+    "test:roles": "hardhat test test/02.InstitutionAndRoles.test.ts",
+    "test:lifecycle": "hardhat test test/03.PayrollLifecycle.test.ts",
+    "test:gateway": "hardhat test test/04.GatewayAndTeeVerification.test.ts",
+    "test:withdrawals": "hardhat test test/05.WithdrawalsAndEscrow.test.ts",
+    "test:operations": "hardhat test test/06.PauseRecoveryAndRescue.test.ts",
+    "test:invariants": "hardhat test test/07.InvariantsAndMultiPayroll.test.ts",
+    "test:abi": "hardhat test test/08.AbiEventsAndViews.test.ts",
+    "test:full": "hardhat test",
+    "predeploy:local": "npm run clean && npm run compile && npm run typecheck && npm run test:full",
+    "validate:env:coston2": "hardhat run scripts/validate-coston2-env.ts --network coston2",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

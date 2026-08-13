@@ -1,0 +1,18 @@
+services:
+  tee-lifecycle:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    command: >
+      sh -c '
+        while true; do
+          echo "[tee-lifecycle] reconciliation started at $$(date -u +%FT%TZ)";
+          python manage.py reconcile_tee_lifecycle || echo "[tee-lifecycle] reconciliation failed";
+          sleep 60;
+        done
+      '
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

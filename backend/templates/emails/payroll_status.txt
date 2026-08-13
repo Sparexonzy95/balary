@@ -1,0 +1,10 @@
+{{ title }}
+
+{{ message }}
+
+Institution: {{ institution_name }}
+Payroll: {{ payroll_title }}
+Period: {{ period_label }}
+Status: {{ payroll_status }}
+{% if funding_deadline %}Funding deadline: {{ funding_deadline }}{% endif %}
+{% if withdrawal_deadline %}Withdrawal deadline: {{ withdrawal_deadline }}{% endif %}

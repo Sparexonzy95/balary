@@ -1,0 +1,9 @@
+{{ title }}
+
+{{ message }}
+
+{% block details %}{% endblock %}
+
+Sign in to Zalary: {{ app_url|default:"http://localhost:5173" }}
+
+This is an automated operational message from Zalary Confidential Payroll.

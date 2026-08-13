@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: zalary
+      POSTGRES_USER: zalary
+      POSTGRES_PASSWORD: zalary-dev-only
+    ports:
+      - "5432:5432"
+    volumes:
+      - zalary_postgres:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  zalary_postgres:

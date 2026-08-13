@@ -1,0 +1,1 @@
+{% extends "emails/base.html" %}{% block details %}<p><strong>Period:</strong> {{ period_label }}{% if expires_at %}<br><strong>Authorization expires:</strong> {{ expires_at }}{% endif %}{% if withdrawal_deadline %}<br><strong>Withdrawal deadline:</strong> {{ withdrawal_deadline }}{% endif %}</p>{% endblock %}

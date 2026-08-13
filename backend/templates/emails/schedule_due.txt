@@ -1,0 +1,8 @@
+{{ title }}
+
+{{ message }}
+
+Schedule: {{ schedule_name }}
+Payroll: {{ payroll_title }}
+Period: {{ period_label }}
+Next scheduled run: {{ next_run_at }}

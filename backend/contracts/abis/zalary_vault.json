@@ -1,0 +1,901 @@
+[
+  {
+    "type": "function",
+    "name": "registerMyInstitution",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "treasury",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "taxVault",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setInstitutionActive",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "active",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setInstitutionAdmin",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setInstitutionHR",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "setInstitutionFinance",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "institutions",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "registered",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "active",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "treasury",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "taxVault",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "institutionAdmins",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "institutionHR",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "institutionFinance",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InstitutionRegistered",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "institutionAdmin",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "treasury",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "taxVault",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InstitutionAdminUpdated",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InstitutionHRUpdated",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "InstitutionFinanceUpdated",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "institution",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "approved",
+        "type": "bool",
+        "indexed": false,
+        "internalType": "bool"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "createPayrollDraft",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "institution",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "metadataHash",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "fundingStartsAt",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "fundingDeadline",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "minimumWithdrawalWindow",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "settlementGracePeriod",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "getPayroll",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "payrollData",
+        "type": "tuple",
+        "internalType": "struct ZalaryPrivatePayrollVault.PayrollData",
+        "components": [
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "createdBy",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "treasury",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "taxVault",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "metadataHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "ciphertextHash",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "privateLedgerRoot",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "employeeCount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "employeeNetTotal",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "aggregateTaxTotal",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalRequired",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundedAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "netWithdrawnAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "taxPaidAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minimumWithdrawalAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "pauseSecondsAtCreation",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "pauseSecondsAtActivation",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "pendingWithdrawalRequests",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "fundingStartsAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "fundingDeadline",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "minimumWithdrawalWindow",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "settlementGracePeriod",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "activatedAt",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "withdrawalDeadline",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "settlementDeadline",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum IZalaryPrivatePayrollVault.PayrollStatus"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PayrollDraftCreated",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "institution",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "createdBy",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "metadataHash",
+        "type": "bytes32",
+        "indexed": false,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "fundingStartsAt",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "fundingDeadline",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "minimumWithdrawalWindow",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      },
+      {
+        "name": "settlementGracePeriod",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PayrollComputationRequested",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "ciphertextHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "ConfidentialPayrollCommitted",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "privateLedgerRoot",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "ciphertextHash",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "employeeCount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "employeeNetTotal",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "aggregateTaxTotal",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalRequired",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "openFunding",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "fundPayroll",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": []
+  },
+  {
+    "type": "function",
+    "name": "getWithdrawalContext",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "context",
+        "type": "tuple",
+        "internalType": "struct IZalaryPrivatePayrollVault.WithdrawalContext",
+        "components": [
+          {
+            "name": "institution",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "privateLedgerRoot",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "stablecoin",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "stablecoinDecimals",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum IZalaryPrivatePayrollVault.PayrollStatus"
+          },
+          {
+            "name": "withdrawalDeadline",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "settlementDeadline",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "pendingWithdrawalRequests",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "minimumWithdrawalAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "effectiveFundingStartsAt",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "effectiveFundingDeadline",
+    "stateMutability": "view",
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PayrollFundingOpened",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": true
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PayrollFunded",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": true
+      },
+      {
+        "name": "funder",
+        "type": "address",
+        "internalType": "address",
+        "indexed": true
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "fundedAmount",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "totalRequired",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PayrollActivated",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "payrollId",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": true
+      },
+      {
+        "name": "activatedAt",
+        "type": "uint64",
+        "internalType": "uint64",
+        "indexed": false
+      },
+      {
+        "name": "withdrawalDeadline",
+        "type": "uint64",
+        "internalType": "uint64",
+        "indexed": false
+      },
+      {
+        "name": "settlementDeadline",
+        "type": "uint64",
+        "internalType": "uint64",
+        "indexed": false
+      },
+      {
+        "name": "employeeEscrow",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "aggregateTaxPaid",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "PrivateWithdrawalExecuted",
+    "anonymous": false,
+    "inputs": [
+      {
+        "name": "instructionId",
+        "type": "bytes32",
+        "internalType": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "withdrawalNullifier",
+        "type": "bytes32",
+        "internalType": "bytes32",
+        "indexed": true
+      },
+      {
+        "name": "destination",
+        "type": "address",
+        "internalType": "address",
+        "indexed": true
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256",
+        "indexed": false
+      },
+      {
+        "name": "newLedgerRoot",
+        "type": "bytes32",
+        "internalType": "bytes32",
+        "indexed": false
+      }
+    ]
+  }
+]

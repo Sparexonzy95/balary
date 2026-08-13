@@ -1,0 +1,8 @@
+{{ title }}
+
+{{ message }}
+
+{% if intent_type %}Intent: {{ intent_type }}{% endif %}
+{% if tx_hash %}Transaction: {{ tx_hash }}{% endif %}
+{% if status %}Status: {{ status }}{% endif %}
+{% if error_message %}Error: {{ error_message }}{% endif %}

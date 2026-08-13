@@ -1,0 +1,50 @@
+{
+  "project": "Zalary Backend",
+  "milestone": 5,
+  "snapshot_date": "2026-07-31",
+  "chain": {
+    "name": "Flare Coston2",
+    "chain_id": 114,
+    "vault": "0xA5277D55a46514740b0C716C691d92b8D9E64e5E",
+    "gateway": "0xFE9A84346A614599C9A0b5a1F444bd816a6C100A",
+    "stablecoin": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+    "tee_id": "0x59268355660DCb868507E538b967fc0eB05A394C",
+    "tee_signer_epoch": 2
+  },
+  "implemented": [
+    "all Milestone 1-4.2 live-verified backend foundations",
+    "wallet and institution onboarding notifications",
+    "role and encrypted employee onboarding notifications",
+    "in-app notification inbox and preferences",
+    "encrypted email-delivery logs with retries and atomic sending claim",
+    "payroll lifecycle, deadline, failure and withdrawal notifications",
+    "weekly biweekly monthly and quarterly payroll schedules",
+    "IANA timezone and month-end anchor support",
+    "fresh payroll-shell generation without salary-row reuse",
+    "Celery Beat operational jobs",
+    "append-only audit events and CSV export",
+    "aggregate payroll JSON and CSV reports",
+    "production PostgreSQL Redis Gunicorn worker and beat configuration",
+    "readiness checks deployment checks request IDs and structured logs"
+  ],
+  "excluded": [
+    ".env",
+    "SMTP credentials",
+    "TEE private state",
+    "database files",
+    "field encryption key",
+    "frontend application",
+    "hosted FCC credentials",
+    "payroll CSV files",
+    "plaintext salary rows",
+    "private keys",
+    "production TLS and DNS configuration"
+  ],
+  "expected_test_count": 44,
+  "runtime_verification": {
+    "base_milestone_4_2": "live verified on Coston2 with full payroll and private withdrawal",
+    "milestone_5_rc1": "static compilation and package checks passed; Windows Django migration and 44-test regression pending"
+  },
+  "base_snapshot": "zalary-backend-milestone-4.2-live-verified",
+  "sample_backend_reference": "notification, template, Celery and scheduler architecture reviewed; legacy Circle, Arc and Merkle logic excluded"
+}

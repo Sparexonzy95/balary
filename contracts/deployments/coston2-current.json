@@ -1,0 +1,20 @@
+{
+  "network": "Flare Coston2",
+  "chainId": 114,
+  "deployer": "0x0EdBC6F8506e72478CE78a4AE934C7b21cb7050A",
+  "stablecoin": {
+    "symbol": "USD₮0",
+    "address": "0xC1A5B41512496B80903D1f32d6dEa3a73212E71F",
+    "decimals": 6
+  },
+  "teeManager": "0x1a9C4A0f9D76c0b1D91d22E24E573a9b377618aE",
+  "vault": "0xBBDDd3fFa53385c4149A0513F1E06FF36BC85020",
+  "gateway": "0xf69CaAF395af6A7DeCB0ac2f86430E6c889A8216",
+  "fccExtensionId": 66209,
+  "fccExtensionIdHex": "0x00000000000000000000000000000000000000000000000000000000000102a1",
+  "teeId": "0x144C0FFbF98C5029E94DA4F75F27f325d2BA1BB0",
+  "teeProxySigner": "0xFf92e0231756Ee0444694C80F459Bf69e5beCe6D",
+  "teeSignerEpoch": 1,
+  "fccProxyUrl": "https://payroll-fcc.balary.lol",
+  "note": "Hackathon deployment uses the scaffold's simulated TEE mode (MODE=1)."
+}

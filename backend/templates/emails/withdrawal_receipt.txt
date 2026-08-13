@@ -1,0 +1,8 @@
+{{ title }}
+
+{{ message }}
+
+Period: {{ period_label }}
+Amount (atomic units): {{ amount_atomic }}
+Finalization transaction: {{ finalization_tx_hash }}
+Completed at: {{ completed_at }}

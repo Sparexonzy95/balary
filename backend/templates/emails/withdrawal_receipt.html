@@ -1,0 +1,1 @@
+{% extends "emails/base.html" %}{% block details %}<p><strong>Period:</strong> {{ period_label }}<br><strong>Amount (atomic units):</strong> {{ amount_atomic }}<br><strong>Finalization transaction:</strong> <code>{{ finalization_tx_hash }}</code><br><strong>Completed at:</strong> {{ completed_at }}</p>{% endblock %}
