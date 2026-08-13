@@ -22,7 +22,7 @@ const STEPS = [
     surface: "#141416",
     media: "#1A1A1D",
     image:
-      "https://res.cloudinary.com/dxmdwvmxl/image/upload/v1777032756/step_2_-_verified_s6tlvk.png",
+      "https://res.cloudinary.com/dxmdwvmxl/image/upload/v1777032757/step_5_employee_request_xbwshc.png",
   },
   {
     title: "Prepare payroll package",
