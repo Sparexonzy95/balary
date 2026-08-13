@@ -4,6 +4,7 @@ import CollapseIcon from "@iconify-react/hugeicons/collapse";
 import ExpandIcon from "@iconify-react/hugeicons/expand";
 import LogoutBoldIcon from "@iconify-react/solar/logout-bold";
 import WalletBoldIcon from "@iconify-react/solar/wallet-bold";
+import balaryMark from "../assets/balary-mark.svg";
 import {
   Bell,
   Building2,
@@ -123,11 +124,7 @@ function DecryptNavLabel({ label, active }: { label: string; active: boolean }) 
 }
 
 function BalaryWordmark() {
-  return (
-    <span className="balary-wordmark" aria-label="Balary">
-      <span>B</span>alary
-    </span>
-  );
+  return <img src={balaryMark} alt="Balary" className="balary-wordmark" aria-label="Balary" />;
 }
 
 function hasRole(

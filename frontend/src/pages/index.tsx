@@ -3046,10 +3046,6 @@ export function HRPayrollDetailPage() {
           <div>
             <strong>{nextAction.title}</strong>
             <span>{nextAction.description}</span>
-            <TransactionExplorerLink
-              hash={currentRun.upload_tx_hash}
-              label="View payroll transaction"
-            />
           </div>
           {nextAction.button && (
             <Button

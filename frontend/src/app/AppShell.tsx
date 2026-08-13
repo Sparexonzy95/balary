@@ -1,12 +1,9 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
+import balaryMark from "../assets/balary-mark.svg";
 import { WalletConnectButton } from "../components/WalletConnectButton";
 
 function BrandMark() {
-  return (
-    <span className="balary-wordmark" aria-label="Balary">
-      <span>B</span>alary
-    </span>
-  );
+  return <img src={balaryMark} alt="Balary" className="balary-wordmark" aria-label="Balary" />;
 }
 
 export function AppShell() {

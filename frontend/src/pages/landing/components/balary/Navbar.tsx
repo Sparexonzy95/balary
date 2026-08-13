@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
+import balaryMark from "../../../../assets/balary-mark.svg";
 import { AnnouncementBar } from "./AnnouncementBar";
 
 /* ---------------------------
@@ -40,11 +41,7 @@ const mobileItem: Variants = {
 };
 
 function BrandMark() {
-  return (
-    <span className="balary-landing-wordmark" aria-label="Balary">
-      <span>B</span>alary
-    </span>
-  );
+  return <img src={balaryMark} alt="Balary" className="balary-landing-wordmark" aria-label="Balary" />;
 }
 
 /* ---------------------------

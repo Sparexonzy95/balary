@@ -554,24 +554,41 @@ export function PrivateWithdrawalDetailPage() {
         {item.error_message && <div className="form-error">{item.error_message}</div>}
 
         <TransactionActivity
-          items={[
-            {
-              title: "Private settlement",
-              status: completed ? `Finalized${item.completed_at ? ` on ${formatDate(item.completed_at)}` : ""}` : withdrawalStatusText(item.status),
-              ...(completed && {
-                txHashes: [
-                  item.payroll_processing_tx_hash && { hash: item.payroll_processing_tx_hash, label: "View payroll transaction" },
-                  item.request_tx_hash && { hash: item.request_tx_hash, label: "View withdrawal request" },
-                  item.finalization_tx_hash && { hash: item.finalization_tx_hash, label: "View final settlement" },
-                ].filter((tx): tx is { hash: string; label: string } => Boolean(tx)),
-              }),
-              ...(!completed && {
-                txHash: item.finalization_tx_hash || item.request_tx_hash,
-              }),
-              tone: completed ? "complete" : isOpenWithdrawal(item) ? "active" : "idle",
-              emptyLabel: proof ? shortAddress(proof) : "Pending",
-            },
-          ]}
+          items={
+            completed
+              ? [
+                  {
+                    title: "Payroll transaction",
+                    status: "Finalized",
+                    txHash: item.payroll_processing_tx_hash,
+                    tone: "complete",
+                    emptyLabel: "No payroll transaction",
+                  },
+                  {
+                    title: "Withdrawal request",
+                    status: "Finalized",
+                    txHash: item.request_tx_hash,
+                    tone: "complete",
+                    emptyLabel: "No request transaction",
+                  },
+                  {
+                    title: "Final settlement",
+                    status: `Finalized${item.completed_at ? ` on ${formatDate(item.completed_at)}` : ""}`,
+                    txHash: item.finalization_tx_hash,
+                    tone: "complete",
+                    emptyLabel: "No settlement transaction",
+                  },
+                ]
+              : [
+                  {
+                    title: "Private settlement",
+                    status: withdrawalStatusText(item.status),
+                    txHash: item.finalization_tx_hash || item.request_tx_hash,
+                    tone: isOpenWithdrawal(item) ? "active" : "idle",
+                    emptyLabel: proof ? shortAddress(proof) : "Pending",
+                  },
+                ]
+          }
         />
       </section>
     </div>

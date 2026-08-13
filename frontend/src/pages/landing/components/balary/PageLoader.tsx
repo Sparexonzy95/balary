@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import balaryMark from "../../../../assets/balary-mark.svg";
 
 /*
   Clean Minimal Loader
@@ -62,16 +63,19 @@ export function PageLoader() {
               gap: 24,
             }}
           >
-            <motion.span
-              className="balary-wordmark"
-              aria-label="Balary"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+            <motion.img
+              src={balaryMark}
+              alt="Balary"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
-              style={{ fontSize: "clamp(2rem, 8vw, 5.5rem)" }}
-            >
-              <span>B</span>alary
-            </motion.span>
+              style={{
+                width: "clamp(7rem, 20vw, 13rem)",
+                height: "auto",
+                display: "block",
+                filter: "drop-shadow(0 0 18px rgba(254, 158, 21, 0.16))",
+              }}
+            />
 
             <div
               style={{
