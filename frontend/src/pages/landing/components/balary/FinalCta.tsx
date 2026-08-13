@@ -72,9 +72,9 @@ export function FinalCta() {
                 variants={fadeUpVariant}
                 className="text-2xl font-semibold leading-tight md:text-4xl lg:text-5xl max-[480px]:text-[26px] max-[375px]:text-[25px] max-[320px]:text-[23px] max-[480px]:leading-[1.08]"
               >
-                Run your first Coston2 USD₮0 payroll.
+                Experience confidential computation
                 <span className="block text-black/70">
-                  Registered. Funded. Claim-ready.
+                  powered by Flare.
                 </span>
               </motion.h2>
 
@@ -82,9 +82,9 @@ export function FinalCta() {
                 variants={itemVariant}
                 className="mt-5 max-w-[52ch] text-sm leading-relaxed text-black/70 md:text-base max-[480px]:max-w-full max-[480px]:text-[13px] max-[480px]:leading-[1.65] max-[320px]:text-[12.5px]"
               >
-                Register an institution, upload validated payroll rows, fund
-                escrow with Coston2 USD₮0, and let employees self-claim with backend
-                receipt tracking.
+                See how private execution and blockchain verification combine to
+                create a new class of decentralized applications built around
+                sensitive corporate and financial workflows.
               </motion.p>
             </div>
 

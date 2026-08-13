@@ -13,29 +13,29 @@ type Category = (typeof CATEGORIES)[number];
 const FAQS: { category: Category; q: string; a: string }[] = [
   {
     category: "General",
-    q: "What is Balary and who is it built for?",
-    a: "Balary helps institutions run Coston2 USD₮0 payroll with wallet-based approvals, HR payroll uploads, Finance funding, and employee self-claims.",
+    q: "Why does Balary need Confidential Compute?",
+    a: "Payroll contains sensitive financial information that should not be exposed publicly. Confidential Compute allows Balary to process this information privately while still producing verifiable outputs that interact with blockchain systems.",
   },
   {
     category: "General",
-    q: "What makes Balary different from traditional payroll systems?",
-    a: "Balary connects institution roles, backend validation, contract-prepared transactions, and event tracking into one payroll workflow.",
+    q: "What makes Balary different from a normal payroll app?",
+    a: "Balary is a confidential application pattern: private payroll logic runs in a Trusted Execution Environment, while verified results connect back into on-chain settlement and claim workflows.",
   },
   {
     category: "General",
     q: "How does Balary fit into an existing workflow?",
-    a: "Institutions can keep their internal approval process while using Balary for wallet registration, payroll package preparation, and on-chain funding.",
+    a: "Institutions keep their operational process while using Balary to secure sensitive payroll execution, validate results, and connect those results to blockchain settlement flows.",
   },
   {
     category: "General",
     q: "Is Balary only for crypto-native teams?",
-    a: "No. It is designed for any institution testing stablecoin payroll operations on Flare Coston2.",
+    a: "No. The application demonstrates a broader confidential compute pattern that any institution can evaluate for sensitive workflows beyond payroll.",
   },
 
   {
     category: "Payroll",
-    q: "What assets can be used for payroll?",
-    a: "The converted Balary frontend is configured around Coston2 USD₮0 for predictable testnet payroll funding and claims.",
+    q: "What runs inside the TEE?",
+    a: "Sensitive payroll computation logic runs inside the Trusted Execution Environment, including protected processing of payroll inputs before verified results are returned to on-chain workflows.",
   },
   {
     category: "Payroll",

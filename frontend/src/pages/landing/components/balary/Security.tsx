@@ -11,11 +11,11 @@ import { useRef } from "react";
 import { containerFast, itemVariant, VP_TIGHT } from "../../lib/animations";
 
 const FEATURES = [
-  { title: "Wallet signatures authorize every protected workspace action", icon: Lock },
-  { title: "Role assignments govern who can prepare payroll and funding", icon: KeyRound },
-  { title: "Backend views expose status without exposing secrets", icon: Eye },
-  { title: "Receipt checks confirm submitted transaction hashes", icon: FileCheck2 },
-  { title: "Coston2 USD₮0 payroll runs through BalaryPayrollManager", icon: Shield },
+  { title: "Sensitive payroll logic runs in a Trusted Execution Environment", icon: Lock },
+  { title: "Confidential inputs stay protected before private execution begins", icon: KeyRound },
+  { title: "Attestation enables verifiable outputs without exposing internal data", icon: Eye },
+  { title: "On-chain settlement remains transparent while execution stays private", icon: FileCheck2 },
+  { title: "Balary demonstrates a confidential compute pattern for real-world workflows", icon: Shield },
 ];
 
 export function Security() {
@@ -72,12 +72,12 @@ export function Security() {
         {/* HEADER */}
         <div className="max-w-xl md:max-w-3xl">
           <SectionHeader
-            eyebrow="Security model"
+            eyebrow="Privacy at execution level"
             title={
               <>
-                Verification built for modern payroll 
+                Traditional smart contracts expose too much.
                 <span className="text-neutral-500">
-                  {" "}secure, scalable and production ready.
+                  {" "}Balary moves sensitive payroll computation into a TEE.
                 </span>
               </>
             }

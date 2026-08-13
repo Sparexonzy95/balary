@@ -13,41 +13,41 @@ import {
 const CARDS = [
   {
     id: 1,
-    title: "Institution Registration",
+    title: "Encrypted Private Inputs",
     subtitle:
-      "Admins register institutions, treasury wallets, tax vaults, and role assignments before payroll starts.",
+      "Sensitive payroll information remains protected before confidential execution begins.",
     image:
       "https://res.cloudinary.com/dhjmedwbx/image/upload/v1777126508/ChatGPT_Image_Apr_25_2026_03_10_18_PM_2_wrk37z.png",
   },
   {
     id: 2,
-    title: "HR Payroll Uploads",
+    title: "TEE-Based Execution",
     subtitle:
-      "HR teams create payroll runs, upload CSV rows, validate employee wallets, and build backend-ready packages.",
+      "Payroll calculations run privately inside Flare Confidential Compute within a Trusted Execution Environment.",
     image:
       "https://res.cloudinary.com/dhjmedwbx/image/upload/v1777126506/ChatGPT_Image_Apr_25_2026_03_08_13_PM_rnob9m.png",
   },
   {
     id: 3,
-    title: "Finance Funding",
+    title: "Verified Computation Results",
     subtitle:
-      "Finance approves Coston2 USD₮0, funds escrow, and lets backend event tracking follow every submitted hash.",
+      "Private outputs are attested and returned for use in verified blockchain workflows.",
     image:
       "https://res.cloudinary.com/dhjmedwbx/image/upload/v1777126515/ChatGPT_Image_Apr_25_2026_03_10_18_PM_4_qwh5d9.png",
   },
   {
     id: 4,
-    title: "Employee Claims",
+    title: "Transparent Settlement",
     subtitle:
-      "Employees discover available payouts, open claim payloads prepared by the backend, and submit from their wallets.",
+      "Smart contracts handle settlement while sensitive employee data stays protected behind confidential execution.",
     image:
       "https://res.cloudinary.com/dhjmedwbx/image/upload/v1777126507/ChatGPT_Image_Apr_25_2026_03_10_18_PM_1_mmlxip.png",
   },
   {
     id: 5,
-    title: "Email Notifications",
+    title: "Confidential Application Pattern",
     subtitle:
-      "Employees receive clear email updates when payroll is ready to claim, actions are pending, or payout status changes.",
+      "Payroll is the real-world demonstration: private inputs, secure execution, verifiable outputs, and on-chain settlement.",
     image:
       "https://res.cloudinary.com/dsbmr3xin/image/upload/v1780081262/ChatGPT_Image_May_29_2026_07_56_31_PM_iflszb.png",
   },
@@ -74,18 +74,20 @@ export function ProductOverview() {
             variants={fadeUpVariant}
             className="text-[22px] sm:text-[28px] md:text-[36px] font-bold leading-[1.1] tracking-[-0.025em] text-white"
           >
-            Stablecoin payroll infrastructure,
+            How Balary uses
             <span className="block text-white/50">
-              built for institutional execution.
+              Confidential Compute.
             </span>
           </motion.h2>
 
           <motion.p
             variants={itemVariant}
-            className="mt-4 max-w-[540px] text-[15px] md:text-[16px] leading-[1.7] text-white/45"
+            className="mt-4 max-w-[620px] text-[15px] md:text-[16px] leading-[1.7] text-white/45"
           >
-            Designed for institution admins, HR, Finance, and employee claim
-            workflows with backend-verified transaction tracking.
+            Payroll is highly sensitive. Balary demonstrates how private inputs,
+            secure execution, and trusted verification can work together inside
+            Flare Confidential Compute while still connecting back to public
+            settlement flows.
           </motion.p>
         </motion.div>
 

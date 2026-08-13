@@ -141,16 +141,15 @@ export function EmployerSection() {
     <FeatureBlock
       id="employers"
       bg="oklch(0.20 0 0)"
-      eyebrow="For HR and Finance"
-      title="Create, validate, fund, and track payroll with role-based control."
+      eyebrow="For confidential payroll workflows"
+      title="A foundation for private applications built around payroll."
       subtitle=""
       features={[
-        "Register institution wallets",
-        "Assign HR and Finance roles",
-        "Upload and validate payroll CSVs",
-        "Prepare backend-built contract payloads",
-        "Approve and fund Coston2 USD₮0 escrow",
-        "Track receipts, statuses, and notifications",
+        "Protect sensitive payroll inputs before execution",
+        "Run payroll logic through a confidential compute boundary",
+        "Generate verified outputs for settlement workflows",
+        "Keep role-based controls for HR, Finance, and institutions",
+        "Track proofs, receipts, and status without exposing sensitive data",
       ]}
       cta="Open workspace"
       image={EMPLOYER_IMAGE}
@@ -164,17 +163,15 @@ export function EmployeeSection() {
       id="employees"
       bg="oklch(0.175 0 0)"
       reverse
-      eyebrow="For employees"
-      title="Claim payroll from the wallet you control."
+      eyebrow="For confidential settlement"
+      title="Sensitive outputs remain verifiable while private data stays protected."
       subtitle=""
       features={[
-        "View claimable payroll runs",
-        "Request backend-prepared claim payloads",
-        "Submit claim transactions from wallet",
-        "Follow pending receipt status",
-        "Receive in-app notifications",
-        "Receive email updates when enabled",
-        "Review payout history transparently",
+        "Review claimable payouts without exposing private payroll internals",
+        "Submit verified claim transactions from the wallet you control",
+        "Follow settlement status through receipt-backed confirmation",
+        "Receive updates tied to trusted execution results",
+        "Demonstrate how private business logic can still connect to public systems",
       ]}
       cta="View employee claims"
       image={EMPLOYEE_IMAGE}

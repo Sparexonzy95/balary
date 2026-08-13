@@ -3,31 +3,31 @@ import { SectionHeader } from "./SectionHeader";
 
 const PILLARS = [
   {
-    eyebrow: "FROM CONTRACT SOURCES",
-    title: "Smart Contract Layer",
-    text: "BalaryPayrollManager coordinates institution registration, role assignment, payroll lifecycle, funding, and employee claims.",
-    tags: ["Coston2 USD₮0", "BalaryPayrollManager", "Claims"],
+    eyebrow: "PRIVATE DATA LAYER",
+    title: "Sensitive payroll inputs",
+    text: "Payroll data, employee records, and compensation logic remain private before execution begins. The system ingests the information needed for payroll without exposing it publicly.",
+    tags: ["Encrypted inputs", "Salary data", "Private logic"],
     diagram: "contract",
   },
   {
-    eyebrow: "FROM BACKEND + WORKER SOURCES",
-    title: "Backend Orchestration",
-    text: "Django APIs prepare transactions, validate payroll rows, track submitted hashes, send notifications, and reconcile receipts.",
-    tags: ["Django", "Celery", "Notifications"],
+    eyebrow: "CONFIDENTIAL COMPUTE LAYER",
+    title: "TEE-based execution",
+    text: "Flare Confidential Compute processes payroll logic inside a Trusted Execution Environment so sensitive operations can run privately while preserving integrity.",
+    tags: ["TEE", "Confidential execution", "Attestation"],
     diagram: "system",
   },
   {
-    eyebrow: "FROM ARC TESTNET CONFIG",
-    title: "Coston2 USD₮0 Model",
-    text: "Finance approves and funds USD₮0 on Flare Coston2 while backend state changes wait for transaction receipts.",
-    tags: ["Flare Coston2", "USD₮0", "Receipts"],
+    eyebrow: "VERIFICATION LAYER",
+    title: "Verifiable outputs",
+    text: "The private execution yields attested results that can be verified and consumed by downstream blockchain workflows without exposing internal computation details.",
+    tags: ["Verified output", "Proof", "Integrity"],
     diagram: "crypto",
   },
   {
-    eyebrow: "FROM FRONTEND SOURCE",
-    title: "Frontend Journeys",
-    text: "Institution, HR, Finance, employee claims, notifications, and account routes preserve the original premium shell.",
-    tags: ["React", "Vite", "Wallet"],
+    eyebrow: "ON-CHAIN LAYER",
+    title: "Settlement and claims",
+    text: "Smart contracts manage settlement, claims, and transaction flows while sensitive payroll data stays protected behind confidential execution.",
+    tags: ["Settlement", "Claims", "Smart contracts"],
     diagram: "ui",
   },
 ];
@@ -99,8 +99,8 @@ export function Architecture() {
       <div className="mx-auto max-w-[1440px] px-6 md:px-8">
         <SectionHeader
           eyebrow="Architecture"
-          title="Built on real infrastructure."
-          subtitle="Each layer is grounded in the converted Balary stack: contract manager, Django APIs, Coston2 USD₮0 configuration, and the restored premium frontend."
+          title="Private data. Protected execution. Verified settlement."
+          subtitle="Balary shows how sensitive payroll logic can remain private while still producing outputs that interact with on-chain settlement and claim workflows."
         />
 
         <div className="mt-16 grid grid-cols-1 gap-5 md:grid-cols-2">

@@ -52,16 +52,13 @@ export function Hero() {
             className="zl-hero-title break-normal font-sans text-[clamp(2.08rem,8.8vw,4.15rem)] font-extrabold leading-[0.96] tracking-normal text-[#F4F4F1] [word-break:normal] max-[380px]:text-[1.82rem] lg:text-[clamp(3.45rem,4.8vw,4.45rem)]"
           >
             <span className="block whitespace-nowrap text-[#FE9E15]">
-              <DecryptingHeadline text="Balary payroll" />
+              <DecryptingHeadline text="Confidential payroll" />
             </span>
             <span className="block whitespace-nowrap">
-              <DecryptingHeadline text="infrastructure" />
+              <DecryptingHeadline text="computation" />
             </span>
             <span className="block whitespace-nowrap">
-              <DecryptingHeadline text="for institutions" />
-            </span>
-            <span className="block whitespace-nowrap">
-              <DecryptingHeadline text="on Flare." />
+              <DecryptingHeadline text="powered by Flare." />
             </span>
           </motion.h1>
 
@@ -71,9 +68,9 @@ export function Hero() {
             transition={{ duration: 0.64, delay: 0.22 }}
             className="mt-6 max-w-[620px] font-mono text-[15px] leading-[1.6] tracking-normal text-white/48 sm:text-[17px]"
           >
-            Run Coston2 USD₮0 payroll with institution self-registration, HR
-            uploads, Finance funding, employee self-claims, and backend event
-            tracking.
+            Balary uses Flare Confidential Compute to process sensitive payroll
+            logic inside a Trusted Execution Environment, then return verifiable
+            outputs to on-chain settlement workflows.
           </motion.p>
 
           <motion.div
