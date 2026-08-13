@@ -22,7 +22,7 @@ import {
   FinanceDashboardPage,
   FinancePayrollDetailPage,
   HRDashboardPage,
-  HRPayrollDetailRedirect,
+  HRPayrollDetailPage,
   InstitutionPage,
   LandingPage,
   LoginPage,
@@ -54,7 +54,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "/hr", element: <HRDashboardPage /> },
               { path: "/hr/payrolls/new", element: <CreatePayrollPage /> },
-              { path: "/hr/payrolls/:runId", element: <HRPayrollDetailRedirect /> },
+              { path: "/hr/payrolls/:runId", element: <HRPayrollDetailPage /> },
             ],
           },
           {

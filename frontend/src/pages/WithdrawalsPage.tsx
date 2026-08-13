@@ -37,6 +37,7 @@ import {
   useToast,
 } from "../components/ui";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
+import { TransactionActivity } from "../components/TransactionActivity";
 
 const TERMINAL_WITHDRAWAL_STATUSES = new Set([
   "finalized",
@@ -562,25 +563,17 @@ export function PrivateWithdrawalDetailPage() {
         {error && <div className="form-error">{error}</div>}
         {item.error_message && <div className="form-error">{item.error_message}</div>}
 
-        <div className="claim-detail-premium-activity balary-proof-activity">
-          <div className="claim-detail-premium-activity-list">
-            <div className="claim-detail-premium-activity-table-head">
-              <span>Activity</span>
-              <span>Status</span>
-              <span>Proof</span>
-            </div>
-            <div className="claim-detail-premium-activity-row">
-              <span
-                className={`claim-detail-premium-activity-dot claim-detail-premium-activity-dot-${
-                  completed ? "complete" : isOpenWithdrawal(item) ? "active" : "idle"
-                }`}
-              />
-              <span className="claim-detail-premium-activity-name">Private settlement</span>
-              <strong className="claim-detail-premium-activity-status">{withdrawalStatusText(item.status)}</strong>
-              <small>{proof ? shortAddress(proof) : "Pending"}</small>
-            </div>
-          </div>
-        </div>
+        <TransactionActivity
+          items={[
+            {
+              title: "Private settlement",
+              status: withdrawalStatusText(item.status),
+              txHash: item.finalization_tx_hash || item.request_tx_hash,
+              tone: completed ? "complete" : isOpenWithdrawal(item) ? "active" : "idle",
+              emptyLabel: proof ? shortAddress(proof) : "Pending",
+            },
+          ]}
+        />
       </section>
     </div>
   );

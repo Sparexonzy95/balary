@@ -70,6 +70,7 @@ import { LandingPage as PremiumLandingPage } from "./LandingPage";
 import { WelcomePage } from "./WelcomePage";
 import { RegistrationStatusPanel } from "../components/RegistrationStatusPanel";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
+import { TransactionActivity } from "../components/TransactionActivity";
 import {
   Button,
   Card,
@@ -150,32 +151,7 @@ function TransactionProofActivity({
   txHash?: string | null;
   tone: "complete" | "pending" | "active" | "idle";
 }) {
-  return (
-    <div className="claim-detail-premium-activity balary-proof-activity">
-      <div className="claim-detail-premium-activity-list">
-        <div className="claim-detail-premium-activity-table-head" aria-hidden="true">
-          <span>Activity</span>
-          <span>Status</span>
-          <span>Action</span>
-        </div>
-
-        <div className="claim-detail-premium-activity-row">
-          <span className={`claim-detail-premium-activity-dot claim-detail-premium-activity-dot-${tone}`} />
-          <span className="claim-detail-premium-activity-name">{title}</span>
-          <strong className="claim-detail-premium-activity-status">{status}</strong>
-          {txHash ? (
-            <a href={txExplorerUrl(txHash)} target="_blank" rel="noreferrer">
-              <span className="claim-detail-action-label-desktop">View transaction</span>
-              <span className="claim-detail-action-label-mobile">View</span>
-              <ArrowRight size={15} strokeWidth={2} />
-            </a>
-          ) : (
-            <small>No transaction yet</small>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  return <TransactionActivity items={[{ title, status, txHash, tone }]} />;
 }
 
 function payrollDisplayStatus(run?: PayrollRun | null) {
@@ -485,9 +461,11 @@ export function RegisterInstitutionPage() {
       const hash = await txSender.sendPrepared(prepared, "Institution registration");
       setLastHash(hash);
       await confirm.mutateAsync({ institution_id: prepared.institution_id, tx_hash: hash });
+      // Wait for the institution data to be available after confirmation
+      await institutionQuery.refetch();
       toast.complete({
-        title: "Institution registration submitted",
-        message: "Balary is tracking the transaction and will activate admin access after confirmation.",
+        title: "Institution registration confirmed",
+        message: "Your institution is now registered on Flare Coston2. Admin access activated.",
       });
       navigate("/institution");
     } catch (err) {
@@ -1394,11 +1372,6 @@ export function HRDashboardPage() {
       </div>
     </div>
   );
-}
-
-export function HRPayrollDetailRedirect() {
-  const { runId } = useParams();
-  return <Navigate to={runId ? `/finance/payrolls/${runId}` : "/finance"} replace />;
 }
 
 type EmployeeDraftRow = {
@@ -3674,8 +3647,8 @@ export function AccountPage() {
   const primaryInstitution = walletMemberships[0]?.institution || institutionList[0] || null;
   const activeRoles = Array.from(new Set(walletMemberships.map(({ member }) => member.role)));
   const roleSummary = activeRoles.length ? activeRoles.map(titleCase).join(", ") : "Employee claims";
-  const accountEmail = auth.account?.email || "Not set";
-  const displayName = auth.account?.display_name || "Not set";
+  const accountEmail = auth.account?.email?.trim();
+  const displayName = auth.account?.display_name?.trim();
   const institutionStatus = primaryInstitution
     ? titleCase(primaryInstitution.registration_status)
     : "Not registered";
@@ -3763,29 +3736,33 @@ export function AccountPage() {
                 </td>
               </tr>
 
-              <tr>
-                <th scope="row">
-                  <span className="account-profile-icon">
-                    <Mail size={17} strokeWidth={1.8} />
-                  </span>
-                  <span>Email</span>
-                </th>
-                <td colSpan={2}>
-                  <strong>{accountEmail}</strong>
-                </td>
-              </tr>
+              {accountEmail && (
+                <tr>
+                  <th scope="row">
+                    <span className="account-profile-icon">
+                      <Mail size={17} strokeWidth={1.8} />
+                    </span>
+                    <span>Email</span>
+                  </th>
+                  <td colSpan={2}>
+                    <strong>{accountEmail}</strong>
+                  </td>
+                </tr>
+              )}
 
-              <tr>
-                <th scope="row">
-                  <span className="account-profile-icon">
-                    <UsersRound size={17} strokeWidth={1.8} />
-                  </span>
-                  <span>Name</span>
-                </th>
-                <td colSpan={2}>
-                  <strong>{displayName}</strong>
-                </td>
-              </tr>
+              {displayName && (
+                <tr>
+                  <th scope="row">
+                    <span className="account-profile-icon">
+                      <UsersRound size={17} strokeWidth={1.8} />
+                    </span>
+                    <span>Name</span>
+                  </th>
+                  <td colSpan={2}>
+                    <strong>{displayName}</strong>
+                  </td>
+                </tr>
+              )}
 
               <tr>
                 <th scope="row">
