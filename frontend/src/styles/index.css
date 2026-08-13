@@ -1255,21 +1255,16 @@ a.address-pill:hover {
   line-height: 1;
 }
 
-.balary-wordmark {
+.balary-wordmark,
+.balary-landing-wordmark {
   font-size: 1.35rem;
   display: inline-flex;
   white-space: nowrap;
 }
 
-.balary-wordmark span {
+.balary-wordmark span,
+.balary-landing-wordmark span {
   color: var(--z-accent, #fe9e15);
-}
-
-.balary-landing-wordmark {
-  width: 9.5rem;
-  height: auto;
-  display: block;
-  object-fit: contain;
 }
 
 .mobile-menu-toggle {
