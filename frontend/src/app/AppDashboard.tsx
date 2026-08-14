@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import CollapseIcon from "@iconify-react/hugeicons/collapse";
 import ExpandIcon from "@iconify-react/hugeicons/expand";
 import LogoutBoldIcon from "@iconify-react/solar/logout-bold";
@@ -197,9 +197,13 @@ export function AppDashboard() {
           onDoubleClick={handleSidebarDoubleClick}
         >
           <div className="sidebar-brand">
-            <Link to={institutionTarget} className="sidebar-logo">
+            <a
+              href="https://balary.lol"
+              className="sidebar-logo"
+              aria-label="Visit balary.lol"
+            >
               <BalaryWordmark />
-            </Link>
+            </a>
             <button
               type="button"
               className="sidebar-collapse-toggle"
@@ -288,9 +292,9 @@ export function AppDashboard() {
 
         <div className="app-content">
           <div className="app-mobile-topbar">
-            <Link to={institutionTarget}>
+            <a href="https://balary.lol" aria-label="Visit balary.lol">
               <BalaryWordmark />
-            </Link>
+            </a>
             <button
               type="button"
               onClick={() => setSidebarOpen((open) => !open)}

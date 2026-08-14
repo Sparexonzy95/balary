@@ -1,5 +1,4 @@
 import { ArrowDownToLine, Copy, ExternalLink } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Footer } from "./components/balary/Footer";
 import { Navbar } from "./components/balary/Navbar";
 import { useToast } from "../../components/ui";
@@ -272,12 +271,14 @@ export function BrandKitPage() {
               validated payroll flows, and employee claims.
             </p>
           </div>
-          <Link
-            to="/"
+          <a
+            href="https://docs.balary.lol"
+            target="_blank"
+            rel="noopener noreferrer"
             className="decrypt-hover-btn inline-flex items-center justify-center rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
           >
-            Back Home
-          </Link>
+            View Docs
+          </a>
         </section>
       </main>
 

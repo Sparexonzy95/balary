@@ -42,7 +42,7 @@ const footerLinks = [
   {
     title: "Support",
     items: [
-      { label: "Help Center", href: "#" },
+      { label: "Help Center", href: "https://docs.balary.lol" },
       { label: "Terms", href: "#" },
       { label: "Notifications", href: "#faq" },
       { label: "Security", href: "#security" },
@@ -63,12 +63,12 @@ const socials = [
   {
     icon: <Mail size={18} />,
     label: "Email",
-    href: "mailto:hello@balary.app",
+    href: "mailto:balaryhq@gmail.com",
   },
   {
     icon: <XLogo size={18} />,
-    label: "Flare",
-    href: "https://arc.network",
+    label: "X",
+    href: "https://x.com/balaryhq",
   },
 ];
 
@@ -141,10 +141,17 @@ export function Footer() {
                 you launch faster and scale smarter.
               </p>
 
+              <a
+                href="mailto:balaryhq@gmail.com"
+                className="mt-5 inline-flex text-sm font-medium text-lime-300 transition-colors hover:text-lime-200"
+              >
+                balaryhq@gmail.com
+              </a>
+
             </div>
 
             <a
-              href="mailto:hello@balary.app"
+              href="mailto:balaryhq@gmail.com"
               aria-label="Email Balary team"
               className="decrypt-hover-btn group flex h-20 w-20 items-center justify-center rounded-full border border-white/15 bg-lime-300 text-black transition-all duration-300 hover:scale-105"
             >
@@ -178,10 +185,19 @@ export function Footer() {
                 tracking improvements, and notification workflows for modern
                 institutions.
               </p>
+
+              <a
+                href="https://x.com/balaryhq"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex text-sm font-medium text-black/70 transition-colors hover:text-black"
+              >
+                x.com/balaryhq
+              </a>
             </div>
 
             <a
-              href="https://arc.network"
+              href="https://x.com/balaryhq"
               target="_blank"
               rel="noopener noreferrer"
               className="decrypt-hover-btn group flex h-20 w-20 items-center justify-center rounded-full border border-black/10 bg-neutral-200 text-black transition-all duration-300 hover:scale-105"
@@ -220,6 +236,12 @@ export function Footer() {
                     <li key={`${group.title}-${item.label}`}>
                       <a
                         href={item.href}
+                        target={item.href.startsWith("http") ? "_blank" : undefined}
+                        rel={
+                          item.href.startsWith("http")
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
                         className="transition hover:text-white"
                       >
                         {item.label}
@@ -254,7 +276,12 @@ export function Footer() {
                     : undefined
                 }
                 className="group flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-white/70 transition-all duration-300 hover:border-white/20 hover:text-white"
-                aria-label={social.label}
+                aria-label={
+                  social.label === "Email"
+                    ? "Email balaryhq@gmail.com"
+                    : "Visit x.com/balaryhq"
+                }
+                title={social.label === "Email" ? "balaryhq@gmail.com" : "x.com/balaryhq"}
               >
                 <span className="transition-transform duration-300 group-hover:scale-110">
                   {social.icon}

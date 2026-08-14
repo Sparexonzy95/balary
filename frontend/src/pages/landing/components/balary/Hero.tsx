@@ -86,7 +86,7 @@ export function Hero() {
               Get started
             </Link>
             <a
-              href="#how-section"
+              href="https://docs.balary.lol"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex min-h-11 items-center justify-center px-2 text-sm font-medium text-white/58 transition hover:text-white"

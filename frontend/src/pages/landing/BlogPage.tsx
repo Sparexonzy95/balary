@@ -90,7 +90,7 @@ export function BlogPage() {
               </h2>
             </div>
             <a
-              href="#how-section"
+              href="https://docs.balary.lol"
               target="_blank"
               rel="noopener noreferrer"
               className="decrypt-hover-btn inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
