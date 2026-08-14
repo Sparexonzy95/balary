@@ -4,7 +4,14 @@ import { adaptInstitution, adaptPreparedTransaction } from "../lib/adapters";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { routes } from "../lib/routes";
-import type { Institution, PreparedTx } from "../lib/types";
+import type { Institution, InstitutionMember, PreparedTx } from "../lib/types";
+
+type RoleChange = {
+  role: "hr" | "finance";
+  wallet_address: string;
+  notification_email?: string;
+  tx_hash: string;
+};
 
 export const institutionsQueryKey = (wallet?: string | null) => [
   "institutions",
@@ -61,9 +68,38 @@ function mergeInstitution(
   return [institution, ...(current || []).filter((item) => item.id !== institution.id)];
 }
 
-function institutionUpdatedAt(institution: Institution) {
-  const timestamp = new Date(institution.updated_at).getTime();
-  return Number.isFinite(timestamp) ? timestamp : 0;
+function timestamp(value?: string) {
+  const parsed = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function sameInstitutionMember(left: InstitutionMember, right: InstitutionMember) {
+  return (
+    left.role === right.role &&
+    left.wallet_address.toLowerCase() === right.wallet_address.toLowerCase()
+  );
+}
+
+function mergeInstitutionState(collection: Institution, detail: Institution) {
+  const base = timestamp(collection.updated_at) > timestamp(detail.updated_at)
+    ? collection
+    : detail;
+  const members = detail.members.reduce((current, detailMember) => {
+    const collectionMember = current.find((member) =>
+      sameInstitutionMember(member, detailMember),
+    );
+    if (
+      collectionMember &&
+      timestamp(collectionMember.updated_at) > timestamp(detailMember.updated_at)
+    ) {
+      return current;
+    }
+    return [
+      ...current.filter((member) => !sameInstitutionMember(member, detailMember)),
+      detailMember,
+    ];
+  }, collection.members);
+  return { ...base, members };
 }
 
 function mergeAuthoritativeInstitutions(
@@ -72,14 +108,52 @@ function mergeAuthoritativeInstitutions(
 ) {
   return (authoritative || []).reduce((current, detail) => {
     const collectionInstitution = current.find((item) => item.id === detail.id);
-    if (
-      collectionInstitution &&
-      institutionUpdatedAt(collectionInstitution) > institutionUpdatedAt(detail)
-    ) {
-      return current;
-    }
-    return mergeInstitution(current, detail);
+    return mergeInstitution(
+      current,
+      collectionInstitution
+        ? mergeInstitutionState(collectionInstitution, detail)
+        : detail,
+    );
   }, collection);
+}
+
+function pendingRoleInstitution(
+  institution: Institution,
+  change: RoleChange,
+  removal: boolean,
+) {
+  const wallet = change.wallet_address.toLowerCase();
+  const existing = institution.members.find(
+    (member) => member.role === change.role && member.wallet_address.toLowerCase() === wallet,
+  );
+  const alreadyConfirmed = removal
+    ? existing?.status === "removed" && existing.approved_onchain === false
+    : existing?.status === "active" && existing.approved_onchain !== false;
+  if (alreadyConfirmed) return institution;
+
+  const fallbackTimestamp = institution.updated_at || institution.created_at;
+  const pendingMember: InstitutionMember = {
+    id: existing?.id ?? -Date.now(),
+    wallet_address: change.wallet_address as `0x${string}`,
+    notification_email: change.notification_email || existing?.notification_email || "",
+    role: change.role,
+    status: "pending_onchain",
+    approved_onchain: removal ? Boolean(existing && existing.approved_onchain !== false) : false,
+    assigned_tx_hash: removal ? existing?.assigned_tx_hash : change.tx_hash,
+    removed_tx_hash: removal ? change.tx_hash : existing?.removed_tx_hash,
+    created_at: existing?.created_at || fallbackTimestamp,
+    updated_at: existing?.updated_at || fallbackTimestamp,
+  };
+
+  return {
+    ...institution,
+    members: [
+      ...institution.members.filter(
+        (member) => !(member.role === change.role && member.wallet_address.toLowerCase() === wallet),
+      ),
+      pendingMember,
+    ],
+  };
 }
 
 async function synchronizeInstitutionCache(
@@ -99,9 +173,6 @@ async function synchronizeInstitutionCache(
     exact: true,
     refetchType: "active",
   });
-  queryClient.setQueryData<Institution[]>(listKey, (current) =>
-    mergeInstitution(current, institution),
-  );
 }
 
 function preparedKey(flow: string) {
@@ -157,7 +228,12 @@ export function useInstitutions() {
         verifiedAuthoritative,
       );
     },
-    refetchInterval: 8_000,
+    refetchInterval: (query) =>
+      query.state.data?.some((institution) =>
+        institution.members.some((member) => member.status === "pending_onchain"),
+      )
+        ? 2_000
+        : 8_000,
   });
 }
 
@@ -289,12 +365,7 @@ export function useConfirmRole(institutionId?: number) {
   const queryClient = useQueryClient();
   const auth = useAuth();
   return useMutation({
-    mutationFn: async (payload: {
-      role: "hr" | "finance";
-      wallet_address: string;
-      notification_email?: string;
-      tx_hash: string;
-    }) => {
+    mutationFn: async (payload: RoleChange) => {
       if (!institutionId) throw new Error("Missing institution");
       await api.post(routes.institutions.confirmRole(institutionId), {
         prepared_transaction_id: recalledPrepared(
@@ -304,14 +375,24 @@ export function useConfirmRole(institutionId?: number) {
       });
       try {
         const response = await api.get<Record<string, unknown>>(routes.institutions.detail(institutionId));
-        return adaptInstitution(response.data);
+        return { institution: adaptInstitution(response.data), change: payload };
       } catch {
-        return null;
+        return { institution: null, change: payload };
       }
     },
-    onSuccess: async (institution) => {
-      if (institution) {
-        await synchronizeInstitutionCache(queryClient, auth.account?.wallet_address, institution);
+    onSuccess: async ({ institution, change }) => {
+      const current = queryClient
+        .getQueryData<Institution[]>(institutionsQueryKey(auth.account?.wallet_address))
+        ?.find((item) => item.id === institutionId);
+      const nextInstitution = institution && current
+        ? mergeInstitutionState(current, institution)
+        : institution || current;
+      if (nextInstitution) {
+        await synchronizeInstitutionCache(
+          queryClient,
+          auth.account?.wallet_address,
+          pendingRoleInstitution(nextInstitution, change, false),
+        );
       } else {
         await queryClient.invalidateQueries({
           queryKey: institutionsQueryKey(auth.account?.wallet_address),
@@ -348,11 +429,7 @@ export function useConfirmRoleRemoval(institutionId?: number) {
   const queryClient = useQueryClient();
   const auth = useAuth();
   return useMutation({
-    mutationFn: async (payload: {
-      role: "hr" | "finance";
-      wallet_address: string;
-      tx_hash: string;
-    }) => {
+    mutationFn: async (payload: RoleChange) => {
       if (!institutionId) throw new Error("Missing institution");
       await api.post(routes.institutions.confirmRoleRemoval(institutionId), {
         prepared_transaction_id: recalledPrepared(
@@ -362,14 +439,24 @@ export function useConfirmRoleRemoval(institutionId?: number) {
       });
       try {
         const response = await api.get<Record<string, unknown>>(routes.institutions.detail(institutionId));
-        return adaptInstitution(response.data);
+        return { institution: adaptInstitution(response.data), change: payload };
       } catch {
-        return null;
+        return { institution: null, change: payload };
       }
     },
-    onSuccess: async (institution) => {
-      if (institution) {
-        await synchronizeInstitutionCache(queryClient, auth.account?.wallet_address, institution);
+    onSuccess: async ({ institution, change }) => {
+      const current = queryClient
+        .getQueryData<Institution[]>(institutionsQueryKey(auth.account?.wallet_address))
+        ?.find((item) => item.id === institutionId);
+      const nextInstitution = institution && current
+        ? mergeInstitutionState(current, institution)
+        : institution || current;
+      if (nextInstitution) {
+        await synchronizeInstitutionCache(
+          queryClient,
+          auth.account?.wallet_address,
+          pendingRoleInstitution(nextInstitution, change, true),
+        );
       } else {
         await queryClient.invalidateQueries({
           queryKey: institutionsQueryKey(auth.account?.wallet_address),

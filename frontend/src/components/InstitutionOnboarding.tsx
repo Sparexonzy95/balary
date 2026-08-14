@@ -85,6 +85,19 @@ export function InstitutionRoleOverview({ institution, canAddEmployees, onAssign
         const assigned = members.some(
           (member) => member.status === "active" && member.approved_onchain !== false,
         );
+        const pendingRemoval = members.some(
+          (member) => member.status === "pending_onchain" && Boolean(member.removed_tx_hash),
+        );
+        const pendingAssignment = members.some(
+          (member) => member.status === "pending_onchain" && !member.removed_tx_hash,
+        );
+        const status = pendingRemoval
+          ? "Pending removal"
+          : pendingAssignment
+            ? "Pending"
+            : assigned
+              ? "Assigned"
+              : "Not assigned";
         return (
           <div className="institution-role-overview-row" key={item.role}>
             <span className="institution-role-overview-icon"><Icon size={16} /></span>
@@ -96,10 +109,21 @@ export function InstitutionRoleOverview({ institution, canAddEmployees, onAssign
               </small>
             </div>
             <span className={`institution-role-overview-status${assigned ? " assigned" : ""}`}>
-              {assigned ? <><Check size={13} /> Assigned</> : members.length ? "Pending" : "Not assigned"}
+              {assigned && !pendingRemoval ? <><Check size={13} /> {status}</> : status}
             </span>
-            <button className="btn btn-secondary btn-sm" type="button" onClick={() => onAssign(item.role)}>
-              {assigned ? `Assign another ${item.title}` : `Assign ${item.title}`}
+            <button
+              className="btn btn-secondary btn-sm"
+              type="button"
+              onClick={() => onAssign(item.role)}
+              disabled={assigned || pendingAssignment || pendingRemoval}
+            >
+              {pendingRemoval
+                ? "Removal pending"
+                : pendingAssignment
+                  ? "Pending"
+                  : assigned
+                    ? "Assigned"
+                    : `Assign ${item.title}`}
             </button>
           </div>
         );

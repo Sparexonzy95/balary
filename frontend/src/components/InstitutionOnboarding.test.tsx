@@ -54,4 +54,107 @@ describe("institution onboarding guidance", () => {
     fireEvent.click(screen.getByRole("button", { name: "Assign HR" }));
     expect(onAssign).toHaveBeenCalledWith("hr");
   });
+
+  it.each([
+    ["hr", "HR"],
+    ["finance", "Finance"],
+  ] as const)("updates the %s row from pending to assigned", (role, label) => {
+    const pendingInstitution: Institution = {
+      ...institution,
+      members: [
+        ...institution.members,
+        {
+          id: 2,
+          wallet_address: wallet,
+          role,
+          status: "pending_onchain",
+          approved_onchain: false,
+          assigned_tx_hash: "0xassign",
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    };
+    const view = render(
+      <MemoryRouter>
+        <InstitutionRoleOverview institution={pendingInstitution} canAddEmployees={false} onAssign={vi.fn()} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("button", { name: "Pending" })).toBeDisabled();
+    expect(screen.getByText(`Wallet: ${wallet}`)).toBeInTheDocument();
+
+    view.rerender(
+      <MemoryRouter>
+        <InstitutionRoleOverview
+          institution={{
+            ...pendingInstitution,
+            members: pendingInstitution.members.map((member) =>
+              member.role === role
+                ? { ...member, status: "active", approved_onchain: true }
+                : member,
+            ),
+          }}
+          canAddEmployees={role === "hr"}
+          onAssign={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("button", { name: "Assigned" })).toBeDisabled();
+    expect(screen.getByText(label)).toBeInTheDocument();
+  });
+
+  it("shows pending removal and then removes the wallet from the role row", () => {
+    const pendingRemoval: Institution = {
+      ...institution,
+      members: [
+        ...institution.members,
+        {
+          id: 2,
+          wallet_address: wallet,
+          role: "hr",
+          status: "pending_onchain",
+          approved_onchain: true,
+          assigned_tx_hash: "0xassign",
+          removed_tx_hash: "0xremove",
+          created_at: "",
+          updated_at: "",
+        },
+      ],
+    };
+    const view = render(
+      <MemoryRouter>
+        <InstitutionRoleOverview institution={pendingRemoval} canAddEmployees={false} onAssign={vi.fn()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Pending removal")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Removal pending" })).toBeDisabled();
+
+    view.rerender(
+      <MemoryRouter>
+        <InstitutionRoleOverview
+          institution={{ ...institution, members: institution.members }}
+          canAddEmployees={false}
+          onAssign={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    const assignHr = screen.getByRole("button", { name: "Assign HR" });
+    expect(assignHr).toBeEnabled();
+    expect(assignHr.closest(".institution-role-overview-row")).toHaveTextContent("Wallet: Not assigned");
+  });
+
+  it("routes employee setup through the existing payroll employee flow", () => {
+    render(
+      <MemoryRouter>
+        <InstitutionRoleOverview institution={institution} canAddEmployees onAssign={vi.fn()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText("Views and claims eligible salary payments.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add employees/i })).toHaveAttribute(
+      "href",
+      "/hr/payrolls/new",
+    );
+  });
 });

@@ -89,22 +89,23 @@ describe("institution registration synchronization", () => {
   });
 
   it("updates active role access after assignment and removal without a browser refresh", async () => {
-    let detailPayload = {
-      ...rawInstitution,
+    const pendingAssignmentMember = {
+      id: 10,
+      wallet_address: wallet,
+      role: "hr",
+      status: "pending_onchain",
+      approved_onchain: false,
+      assigned_tx_hash: "0xassign",
+      created_at: "2026-08-14T09:59:00Z",
       updated_at: "2026-08-14T10:00:00Z",
-      members: [
-        ...rawInstitution.members,
-        {
-          id: 10,
-          wallet_address: wallet,
-          role: "hr",
-          status: "active",
-          approved_onchain: true,
-        },
-      ],
     };
+    let detailPayload: Record<string, unknown> = {
+      ...rawInstitution,
+      members: [...rawInstitution.members, pendingAssignmentMember],
+    };
+    let collectionPayload: Record<string, unknown>[] = [rawInstitution];
     vi.spyOn(api, "get").mockImplementation(async (url) => ({
-      data: url === "/institutions/7/" ? detailPayload : [rawInstitution],
+      data: url === "/institutions/7/" ? detailPayload : collectionPayload,
     }));
     vi.spyOn(api, "post").mockResolvedValue({ data: {} });
     window.sessionStorage.setItem(
@@ -137,13 +138,40 @@ describe("institution registration synchronization", () => {
       });
     });
     await waitFor(() =>
+      expect(
+        view.result.current.active.institution?.members.find((member) => member.role === "hr")?.status,
+      ).toBe("pending_onchain"),
+    );
+    expect(userHasAnyRole(view.result.current.active.data, wallet, ["hr"])).toBe(false);
+
+    const activeHrMember = {
+      ...pendingAssignmentMember,
+      status: "active",
+      approved_onchain: true,
+      updated_at: "2026-08-14T10:01:00Z",
+    };
+    collectionPayload = [{
+      ...rawInstitution,
+      members: [...rawInstitution.members, activeHrMember],
+    }];
+    await act(async () => {
+      await view.result.current.active.refetch();
+    });
+    await waitFor(() =>
       expect(userHasAnyRole(view.result.current.active.data, wallet, ["hr"])).toBe(true),
     );
 
     detailPayload = {
-      ...detailPayload,
-      updated_at: "2026-08-14T10:01:00Z",
-      members: rawInstitution.members,
+      ...rawInstitution,
+      members: [
+        ...rawInstitution.members,
+        {
+          ...activeHrMember,
+          status: "pending_onchain",
+          removed_tx_hash: "0xremove",
+          updated_at: "2026-08-14T10:02:00Z",
+        },
+      ],
     };
     await act(async () => {
       await view.result.current.remove.mutateAsync({
@@ -153,7 +181,93 @@ describe("institution registration synchronization", () => {
       });
     });
     await waitFor(() =>
+      expect(
+        view.result.current.active.institution?.members.find((member) => member.role === "hr")?.removed_tx_hash,
+      ).toBe("0xremove"),
+    );
+    expect(userHasAnyRole(view.result.current.active.data, wallet, ["hr"])).toBe(false);
+
+    collectionPayload = [{
+      ...rawInstitution,
+      members: [
+        ...rawInstitution.members,
+        {
+          ...activeHrMember,
+          status: "removed",
+          approved_onchain: false,
+          removed_tx_hash: "0xremove",
+          updated_at: "2026-08-14T10:03:00Z",
+        },
+      ],
+    }];
+    await act(async () => {
+      await view.result.current.active.refetch();
+    });
+    await waitFor(() =>
       expect(userHasAnyRole(view.result.current.active.data, wallet, ["hr"])).toBe(false),
+    );
+  });
+
+  it("renders a Finance assignment as pending even when the immediate detail request fails", async () => {
+    let collectionPayload: Record<string, unknown>[] = [rawInstitution];
+    vi.spyOn(api, "get").mockImplementation(async (url) => {
+      if (url === "/institutions/7/") throw new Error("detail temporarily unavailable");
+      return { data: collectionPayload };
+    });
+    vi.spyOn(api, "post").mockResolvedValue({ data: {} });
+    window.sessionStorage.setItem(
+      `zalary:prepared:institution:7:role:finance:${wallet}`,
+      "prepared-finance",
+    );
+
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    const view = renderHook(() => ({
+      active: useActiveInstitution(),
+      assign: useConfirmRole(7),
+    }), { wrapper });
+
+    await waitFor(() => expect(view.result.current.active.isSuccess).toBe(true));
+    await act(async () => {
+      await view.result.current.assign.mutateAsync({
+        role: "finance",
+        wallet_address: wallet,
+        notification_email: "finance@example.com",
+        tx_hash: "0xfinance",
+      });
+    });
+    await waitFor(() =>
+      expect(
+        view.result.current.active.institution?.members.find((member) => member.role === "finance")?.status,
+      ).toBe("pending_onchain"),
+    );
+    expect(userHasAnyRole(view.result.current.active.data, wallet, ["finance"])).toBe(false);
+
+    collectionPayload = [{
+      ...rawInstitution,
+      members: [
+        ...rawInstitution.members,
+        {
+          id: 11,
+          wallet_address: wallet,
+          role: "finance",
+          status: "active",
+          approved_onchain: true,
+          assigned_tx_hash: "0xfinance",
+          created_at: "2026-08-14T10:03:00Z",
+          updated_at: "2026-08-14T10:04:00Z",
+        },
+      ],
+    }];
+    await act(async () => {
+      await view.result.current.active.refetch();
+    });
+    await waitFor(() =>
+      expect(userHasAnyRole(view.result.current.active.data, wallet, ["finance"])).toBe(true),
     );
   });
 });
