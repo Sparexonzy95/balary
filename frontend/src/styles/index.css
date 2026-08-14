@@ -1346,6 +1346,137 @@ a.address-pill:hover {
   gap: 1rem;
 }
 
+.institution-role-overview {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+}
+
+.institution-role-overview-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.institution-role-overview-icon {
+  display: inline-flex;
+  width: 2.2rem;
+  height: 2.2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(254, 158, 21, 0.2);
+  border-radius: 10px;
+  color: var(--z-accent);
+}
+
+.institution-role-overview-copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.institution-role-overview-copy strong { color: #f1f3f1; font-size: 0.88rem; }
+.institution-role-overview-copy span { color: #a6adb1; font-size: 0.76rem; }
+.institution-role-overview-copy small {
+  overflow-wrap: anywhere;
+  color: #7f888e;
+  font-family: var(--z-mono);
+  font-size: 0.6rem;
+}
+
+.institution-role-overview-status,
+.institution-role-overview-guidance {
+  color: #9aa1a6;
+  font-family: var(--z-mono);
+  font-size: 0.64rem;
+  font-weight: 750;
+}
+
+.institution-role-overview-status.assigned {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--z-success);
+}
+
+.institution-created-panel {
+  display: grid;
+  gap: 1.15rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  border: 1px solid rgba(56, 217, 150, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(56, 217, 150, 0.075), rgba(255, 255, 255, 0.03));
+}
+
+.institution-created-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+}
+
+.institution-created-icon {
+  display: inline-flex;
+  width: 2.6rem;
+  height: 2.6rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(56, 217, 150, 0.1);
+  color: var(--z-success);
+}
+
+.institution-created-head span:not(.institution-created-icon) {
+  color: #8bdcb8;
+  font-family: var(--z-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.institution-created-head h2 { margin: 0.25rem 0 0; color: #f3f5f4; }
+.institution-created-head p { margin: 0.45rem 0 0; color: #a9b2b0; }
+
+.institution-setup-progress {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 12px;
+}
+
+.institution-setup-step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 4rem;
+  padding: 0.75rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  color: #8f979c;
+}
+
+.institution-setup-step:last-child { border-right: 0; }
+.institution-setup-step > span {
+  display: inline-flex;
+  width: 1.65rem;
+  height: 1.65rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-family: var(--z-mono);
+  font-size: 0.6rem;
+}
+.institution-setup-step strong { font-size: 0.74rem; }
+.institution-setup-step.complete { color: #bde8d3; }
+.institution-setup-step.complete > span { border-color: rgba(56, 217, 150, 0.28); color: var(--z-success); }
+
+.institution-created-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+
 .role-complete-panel {
   display: grid;
   gap: 1rem;
@@ -1750,6 +1881,14 @@ a.address-pill:hover {
     grid-template-columns: 1fr;
   }
 
+  .institution-role-overview-row { grid-template-columns: auto minmax(0, 1fr); }
+  .institution-role-overview-status,
+  .institution-role-overview-guidance,
+  .institution-role-overview-row > .btn { grid-column: 2; justify-self: start; }
+  .institution-setup-progress { grid-template-columns: 1fr; }
+  .institution-setup-step { border-right: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .institution-setup-step:last-child { border-bottom: 0; }
+
   .role-assignment-step {
     border-right: 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -1767,6 +1906,9 @@ a.address-pill:hover {
     align-items: stretch;
     flex-direction: column-reverse;
   }
+
+  .institution-created-actions { align-items: stretch; flex-direction: column; }
+  .institution-created-actions .btn { width: 100%; }
 
   .role-assignment-actions .btn,
   .role-complete-actions .btn,

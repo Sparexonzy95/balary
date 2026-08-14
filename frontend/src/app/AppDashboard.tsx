@@ -164,7 +164,9 @@ export function AppDashboard() {
     : null;
 
   const visibleNav = NAV_ITEMS.filter((item) => {
-    if (item.id === "institution") return true;
+    if (item.id === "institution") {
+      return !rolesReady || !institutions.data?.length || hasRole(["admin"], institutions.data, walletAddress);
+    }
     if (item.alwaysVisible) return true;
     if (!rolesReady) return false;
     return hasRole(item.roles, institutions.data, walletAddress);

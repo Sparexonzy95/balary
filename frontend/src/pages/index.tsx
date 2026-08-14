@@ -39,7 +39,7 @@ import { txExplorerUrl } from "../lib/chains";
 import { env } from "../lib/env";
 import { backendReportedPayrollStatus, canGenerateMerkle } from "../lib/readiness";
 import { routes } from "../lib/routes";
-import type { InstitutionMember, PayrollRun, PreparedTx } from "../lib/types";
+import type { Institution, InstitutionMember, PayrollRun, PreparedTx } from "../lib/types";
 import { formatDate, formatUsdc, parseUsdc, shortAddress, titleCase } from "../lib/utils";
 import { useWallet } from "../lib/wallet";
 import { useAvailableClaims, useClaimPayload, useConfirmClaim } from "../hooks/useClaims";
@@ -68,6 +68,7 @@ import { useTxSender } from "../hooks/useTxSender";
 import { LandingPage as PremiumLandingPage } from "./LandingPage";
 import { WelcomePage } from "./WelcomePage";
 import { RegistrationStatusPanel } from "../components/RegistrationStatusPanel";
+import { InstitutionCreatedPanel, InstitutionRoleOverview } from "../components/InstitutionOnboarding";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
 import { TransactionActivity } from "../components/TransactionActivity";
 import { TransactionButton } from "../components/TransactionButton";
@@ -186,16 +187,18 @@ function sortPayrollRunsForList(runs: PayrollRun[]) {
 function PayrollTable({
   runs,
   emptyLabel = "No payroll runs yet.",
+  emptyDescription = "Create or fund a run to see it here.",
   detailBasePath = "/hr/payrolls",
 }: {
   runs?: PayrollRun[];
   emptyLabel?: string;
+  emptyDescription?: string;
   detailBasePath?: "/hr/payrolls" | "/finance/payrolls";
 }) {
   if (!runs?.length) {
     return (
       <div className="employer-task-card employer-payroll-board">
-        <EmptyState title={emptyLabel} description="Create or fund a run to see it here." />
+        <EmptyState title={emptyLabel} description={emptyDescription} />
       </div>
     );
   }
@@ -295,8 +298,8 @@ export function InstitutionPage() {
         <main className="employer-task-main">
           <section className="employer-task-card employer-payroll-board">
             <EmptyState
-              title="No active institution found"
-              description="Register with the connected wallet, then wait for backend receipt sync to activate the admin role."
+              title="No institution yet"
+              description="Create your first institution to start using confidential payroll."
             />
           </section>
         </main>
@@ -378,7 +381,6 @@ export function RegisterInstitutionPage() {
   const prepare = usePrepareRegistration();
   const confirm = useConfirmRegistration();
   const txSender = useTxSender();
-  const navigate = useNavigate();
   const toast = useToast();
   const [name, setName] = React.useState("");
   const [notificationEmail, setNotificationEmail] = React.useState(auth.account?.email || "");
@@ -386,6 +388,7 @@ export function RegisterInstitutionPage() {
   const [taxVault, setTaxVault] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
   const [lastHash, setLastHash] = React.useState<string | null>(null);
+  const [createdInstitution, setCreatedInstitution] = React.useState<Institution | null>(null);
   const [registrationStep, setRegistrationStep] = React.useState<0 | 1 | 2>(1);
 
   React.useEffect(() => {
@@ -460,14 +463,15 @@ export function RegisterInstitutionPage() {
       });
       const hash = await txSender.sendPrepared(prepared, "Institution registration");
       setLastHash(hash);
-      await confirm.mutateAsync({ institution_id: prepared.institution_id, tx_hash: hash });
-      // Wait for the institution data to be available after confirmation
-      await institutionQuery.refetch();
+      const confirmedInstitution = await confirm.mutateAsync({
+        institution_id: prepared.institution_id,
+        tx_hash: hash,
+      });
+      setCreatedInstitution(confirmedInstitution);
       toast.complete({
-        title: "Institution registration confirmed",
+        title: "Institution created successfully",
         message: "Your institution is now registered on Flare Coston2. Admin access activated.",
       });
-      navigate("/institution");
     } catch (err) {
       setError(errorMessage(err));
       institutionQuery.refetch();
@@ -476,6 +480,21 @@ export function RegisterInstitutionPage() {
 
   if (institutionQuery.isLoading) return <LoadingState label="Loading registration" />;
   if (institutionQuery.error) return <ErrorState message={errorMessage(institutionQuery.error)} />;
+
+  if (createdInstitution) {
+    return (
+      <div className="onboarding-page employer-onboarding-page dashboard-shell">
+        <div className="employer-onboarding-head">
+          <div>
+            <div className="employer-kicker">Institution onboarding</div>
+            <h1>Set up your workspace</h1>
+            <p>Your institution is ready. Continue with the team members who operate payroll.</p>
+          </div>
+        </div>
+        <InstitutionCreatedPanel institution={createdInstitution} />
+      </div>
+    );
+  }
 
   return (
     <div className="onboarding-page employer-onboarding-page dashboard-shell">
@@ -744,6 +763,13 @@ export function RolesPage() {
     setLastRoleHash(null);
   }
 
+  function beginRoleAssignment(nextRole: "hr" | "finance") {
+    chooseRole(nextRole);
+    setShowAssignmentWizard(true);
+    setAssignmentStep(1);
+    setSelectedRemovalId(null);
+  }
+
   function startAnotherAssignment() {
     setShowAssignmentWizard(true);
     setAssignmentStep(0);
@@ -899,7 +925,7 @@ export function RolesPage() {
             </p>
             {lastRemovalHash && (
               <SuccessNote>
-                Removal submitted {shortAddress(lastRemovalHash)}. Refresh after confirmation.
+                Removal submitted {shortAddress(lastRemovalHash)}. Access will update automatically after confirmation.
               </SuccessNote>
             )}
             <FormError message={removalError || txSender.lastError} />
@@ -965,6 +991,11 @@ export function RolesPage() {
                 </span>
               </div>
             </div>
+            <InstitutionRoleOverview
+              institution={institution}
+              canAddEmployees={currentWalletHasHr}
+              onAssign={beginRoleAssignment}
+            />
             {!isAdmin ? (
               <EmptyState title="Admin role required" description="Only an active institution admin can assign payroll roles." />
             ) : roleSetupComplete && !shouldShowAssignmentWizard ? (
@@ -1124,7 +1155,7 @@ export function RolesPage() {
                     </div>
                     {lastRoleHash && (
                       <SuccessNote>
-                        Submitted {shortAddress(lastRoleHash)}. Refresh the institution page after confirmation.
+                        Submitted {shortAddress(lastRoleHash)}. Role status will update automatically after confirmation.
                       </SuccessNote>
                     )}
                     <div className="role-assignment-actions">
@@ -1318,9 +1349,9 @@ export function HRDashboardPage() {
               <div className="employer-task-loading">Loading payroll...</div>
             ) : runs.length === 0 ? (
               <EmptyState
-                title="No payroll yet"
-                description="Create a draft run, then upload and validate payment rows."
-                action={<Link className="btn" to="/hr/payrolls/new">Create Payroll</Link>}
+                title="No payrolls yet"
+                description="Create your first confidential payroll."
+                action={<Link className="btn" to="/hr/payrolls/new">Create payroll</Link>}
               />
             ) : filteredRuns.length === 0 ? (
               <p className="muted employer-task-empty">No payroll matches your current filter.</p>
@@ -3214,7 +3245,12 @@ export function FinanceDashboardPage() {
               <div className="employer-task-loading">Loading funding queue...</div>
             ) : (
               <>
-                <PayrollTable runs={visibleFinanceRuns} emptyLabel="No runs ready for Finance." detailBasePath="/finance/payrolls" />
+                <PayrollTable
+                  runs={visibleFinanceRuns}
+                  emptyLabel="No payrolls ready for funding"
+                  emptyDescription="Approved payrolls will appear here when HR completes confidential processing."
+                  detailBasePath="/finance/payrolls"
+                />
                 {financeRuns.length > pageSize && (
                   <div className="employee-claims-pagination employer-payroll-pagination employer-task-pagination" aria-label="Funding queue pagination">
                     <span>

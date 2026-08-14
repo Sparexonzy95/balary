@@ -209,8 +209,8 @@ export function PrivateWithdrawalsPage() {
               </>
             ) : (
               <EmptyState
-                title="No available withdrawals"
-                description="Active payrolls available to this employee wallet will appear here automatically."
+                title="This wallet is not registered as an employee for an active payroll"
+                description="Eligible salary payments will appear here automatically after HR includes this wallet in a funded payroll."
               />
             )}
           </section>

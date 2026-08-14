@@ -1,9 +1,108 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import React from "react";
+import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { adaptInstitution, adaptPreparedTransaction } from "../lib/adapters";
 import { api } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { routes } from "../lib/routes";
 import type { Institution, PreparedTx } from "../lib/types";
+
+export const institutionsQueryKey = (wallet?: string | null) => [
+  "institutions",
+  "me",
+  wallet?.toLowerCase() || "anonymous",
+] as const;
+const activeInstitutionKey = (wallet?: string | null) => [
+  "institutions",
+  "active",
+  wallet?.toLowerCase() || "anonymous",
+] as const;
+const authoritativeInstitutionsKey = (wallet?: string | null) => [
+  "institutions",
+  "authoritative",
+  wallet?.toLowerCase() || "anonymous",
+] as const;
+
+function activeInstitutionStorageKey(wallet?: string | null) {
+  return `balary:active-institution:${wallet?.toLowerCase() || "anonymous"}`;
+}
+
+function storedActiveInstitution(wallet?: string | null) {
+  if (typeof window === "undefined") return null;
+  const value = Number(window.sessionStorage.getItem(activeInstitutionStorageKey(wallet)));
+  return Number.isInteger(value) && value > 0 ? value : null;
+}
+
+const institutionDependentQueryKeys = [
+  ["payroll-runs"],
+  ["claims"],
+  ["withdrawals"],
+  ["notifications"],
+  ["transactions"],
+  ["schedules"],
+  ["audit"],
+  ["fcc"],
+] as const;
+
+function selectInstitution(
+  queryClient: QueryClient,
+  wallet: string | null | undefined,
+  institutionId: number,
+) {
+  queryClient.setQueryData(activeInstitutionKey(wallet), institutionId);
+  if (typeof window !== "undefined") {
+    window.sessionStorage.setItem(activeInstitutionStorageKey(wallet), String(institutionId));
+  }
+}
+
+function mergeInstitution(
+  current: Institution[] | undefined,
+  institution: Institution,
+) {
+  return [institution, ...(current || []).filter((item) => item.id !== institution.id)];
+}
+
+function institutionUpdatedAt(institution: Institution) {
+  const timestamp = new Date(institution.updated_at).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function mergeAuthoritativeInstitutions(
+  collection: Institution[],
+  authoritative: Institution[] | undefined,
+) {
+  return (authoritative || []).reduce((current, detail) => {
+    const collectionInstitution = current.find((item) => item.id === detail.id);
+    if (
+      collectionInstitution &&
+      institutionUpdatedAt(collectionInstitution) > institutionUpdatedAt(detail)
+    ) {
+      return current;
+    }
+    return mergeInstitution(current, detail);
+  }, collection);
+}
+
+async function synchronizeInstitutionCache(
+  queryClient: QueryClient,
+  wallet: string | null | undefined,
+  institution: Institution,
+) {
+  const listKey = institutionsQueryKey(wallet);
+  queryClient.setQueryData<Institution[]>(authoritativeInstitutionsKey(wallet), (current) =>
+    mergeInstitution(current, institution),
+  );
+  queryClient.setQueryData<Institution[]>(listKey, (current) =>
+    mergeInstitution(current, institution),
+  );
+  await queryClient.invalidateQueries({
+    queryKey: listKey,
+    exact: true,
+    refetchType: "active",
+  });
+  queryClient.setQueryData<Institution[]>(listKey, (current) =>
+    mergeInstitution(current, institution),
+  );
+}
 
 function preparedKey(flow: string) {
   return `zalary:prepared:${flow}`;
@@ -20,21 +119,72 @@ function recalledPrepared(flow: string) {
 }
 
 export function useInstitutions() {
-  const { isAuthenticated } = useAuth();
+  const { account, isAuthenticated } = useAuth();
+  const queryClient = useQueryClient();
+  const wallet = account?.wallet_address;
   return useQuery({
-    queryKey: ["institutions", "me"],
+    queryKey: institutionsQueryKey(wallet),
     enabled: isAuthenticated,
     queryFn: async () => {
       const response = await api.get<Record<string, unknown>[]>(routes.institutions.me);
-      return response.data.map(adaptInstitution);
+      const collection = response.data.map(adaptInstitution);
+      const authoritativeKey = authoritativeInstitutionsKey(wallet);
+      const authoritative = queryClient.getQueryData<Institution[]>(authoritativeKey) || [];
+      const missingFromCollection = authoritative.filter(
+        (detail) => !collection.some((item) => item.id === detail.id),
+      );
+      const verifiedMissing = await Promise.all(
+        missingFromCollection.map(async (detail) => {
+          try {
+            const detailResponse = await api.get<Record<string, unknown>>(
+              routes.institutions.detail(detail.id),
+            );
+            return adaptInstitution(detailResponse.data);
+          } catch {
+            return null;
+          }
+        }),
+      );
+      const verifiedAuthoritative = [
+        ...authoritative.filter((detail) =>
+          collection.some((item) => item.id === detail.id),
+        ),
+        ...verifiedMissing.filter((detail): detail is Institution => Boolean(detail)),
+      ];
+      queryClient.setQueryData(authoritativeKey, verifiedAuthoritative);
+      return mergeAuthoritativeInstitutions(
+        collection,
+        verifiedAuthoritative,
+      );
     },
     refetchInterval: 8_000,
   });
 }
 
 export function useActiveInstitution() {
+  const auth = useAuth();
+  const queryClient = useQueryClient();
   const institutions = useInstitutions();
-  return { ...institutions, institution: institutions.data?.[0] || null };
+  const selectionKey = activeInstitutionKey(auth.account?.wallet_address);
+  const selection = useQuery<number | null>({
+    queryKey: selectionKey,
+    queryFn: async () => null,
+    enabled: false,
+    initialData: () => storedActiveInstitution(auth.account?.wallet_address),
+  });
+  const selectedInstitutionId = selection.data;
+  const institution =
+    institutions.data?.find((item) => item.id === selectedInstitutionId) ||
+    institutions.data?.[0] ||
+    null;
+
+  React.useEffect(() => {
+    if (institution && institution.id !== selectedInstitutionId) {
+      selectInstitution(queryClient, auth.account?.wallet_address, institution.id);
+    }
+  }, [auth.account?.wallet_address, institution, queryClient, selectedInstitutionId]);
+
+  return { ...institutions, institution };
 }
 
 export function hasInstitutionRole(
@@ -81,6 +231,7 @@ export function usePrepareRegistration() {
 
 export function useConfirmRegistration() {
   const queryClient = useQueryClient();
+  const auth = useAuth();
   return useMutation({
     mutationFn: async (payload: { institution_id: number; tx_hash: string }) => {
       await api.post(routes.institutions.confirmRegistration(payload.institution_id), {
@@ -91,13 +242,15 @@ export function useConfirmRegistration() {
       return adaptInstitution(response.data);
     },
     onSuccess: async (institution) => {
-      queryClient.setQueryData<Institution[]>(["institutions", "me"], (current) => {
-        if (!current) return [institution];
-        const next = current.filter((item) => item.id !== institution.id);
-        return [institution, ...next];
+      // Select immediately so every consumer agrees on the post-registration workspace.
+      selectInstitution(queryClient, auth.account?.wallet_address, institution.id);
+      // The collection endpoint can lag behind the confirmed detail response. Refresh it,
+      // then re-merge the authoritative detail so a stale list cannot revoke fresh access.
+      await synchronizeInstitutionCache(queryClient, auth.account?.wallet_address, institution);
+
+      institutionDependentQueryKeys.forEach((queryKey) => {
+        void queryClient.invalidateQueries({ queryKey });
       });
-      await queryClient.invalidateQueries({ queryKey: ["institutions"] });
-      await queryClient.refetchQueries({ queryKey: ["institutions", "me"] });
     },
   });
 }
@@ -134,6 +287,7 @@ export function usePrepareRole(institutionId?: number) {
 
 export function useConfirmRole(institutionId?: number) {
   const queryClient = useQueryClient();
+  const auth = useAuth();
   return useMutation({
     mutationFn: async (payload: {
       role: "hr" | "finance";
@@ -148,9 +302,23 @@ export function useConfirmRole(institutionId?: number) {
         ),
         tx_hash: payload.tx_hash,
       });
-      return { member_id: 0, status: "pending_onchain" };
+      try {
+        const response = await api.get<Record<string, unknown>>(routes.institutions.detail(institutionId));
+        return adaptInstitution(response.data);
+      } catch {
+        return null;
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["institutions"] }),
+    onSuccess: async (institution) => {
+      if (institution) {
+        await synchronizeInstitutionCache(queryClient, auth.account?.wallet_address, institution);
+      } else {
+        await queryClient.invalidateQueries({
+          queryKey: institutionsQueryKey(auth.account?.wallet_address),
+          exact: true,
+        });
+      }
+    },
   });
 }
 
@@ -178,6 +346,7 @@ export function usePrepareRoleRemoval(institutionId?: number) {
 
 export function useConfirmRoleRemoval(institutionId?: number) {
   const queryClient = useQueryClient();
+  const auth = useAuth();
   return useMutation({
     mutationFn: async (payload: {
       role: "hr" | "finance";
@@ -191,8 +360,22 @@ export function useConfirmRoleRemoval(institutionId?: number) {
         ),
         tx_hash: payload.tx_hash,
       });
-      return { member_id: 0, status: "pending_onchain" };
+      try {
+        const response = await api.get<Record<string, unknown>>(routes.institutions.detail(institutionId));
+        return adaptInstitution(response.data);
+      } catch {
+        return null;
+      }
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["institutions"] }),
+    onSuccess: async (institution) => {
+      if (institution) {
+        await synchronizeInstitutionCache(queryClient, auth.account?.wallet_address, institution);
+      } else {
+        await queryClient.invalidateQueries({
+          queryKey: institutionsQueryKey(auth.account?.wallet_address),
+          exact: true,
+        });
+      }
+    },
   });
 }
