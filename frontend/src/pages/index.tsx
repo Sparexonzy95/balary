@@ -70,6 +70,7 @@ import { WelcomePage } from "./WelcomePage";
 import { RegistrationStatusPanel } from "../components/RegistrationStatusPanel";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
 import { TransactionActivity } from "../components/TransactionActivity";
+import { TransactionButton } from "../components/TransactionButton";
 import {
   Button,
   Card,
@@ -640,10 +641,14 @@ export function RegisterInstitutionPage() {
                         <ArrowLeft size={15} strokeWidth={1.8} />
                         Back
                       </Button>
-                      <Button type="submit" disabled={prepare.isPending || confirm.isPending || txSender.busy || !detailsReady}>
-                        <Send size={16} />
-                        {existingInstitution?.registration_status === "failed" ? "Retry with wallet" : "Register with wallet"}
-                      </Button>
+                      <TransactionButton
+                        type="submit"
+                        isProcessing={prepare.isPending || confirm.isPending || txSender.busy}
+                        idleLabel={existingInstitution?.registration_status === "failed" ? "Retry with wallet" : "Register with wallet"}
+                        processingLabel="Processing registration..."
+                        icon={Send}
+                        disabled={!detailsReady}
+                      />
                     </div>
                   </form>
                 </Card>
@@ -902,10 +907,14 @@ export function RolesPage() {
               <Button type="button" variant="secondary" onClick={cancelRoleRemoval} disabled={prepareRemoval.isPending || confirmRemoval.isPending || txSender.busy}>
                 Cancel
               </Button>
-              <Button
+              <TransactionButton
                 type="button"
                 variant="danger"
                 onClick={() => submitRoleRemoval(selectedRemovalMember)}
+                isProcessing={prepareRemoval.isPending || confirmRemoval.isPending || txSender.busy}
+                idleLabel={lastRemovalHash ? "Submitted" : "Remove role"}
+                processingLabel={txSender.busy ? "Confirming transaction..." : "Processing removal..."}
+                icon={UserMinus}
                 disabled={
                   prepareRemoval.isPending ||
                   confirmRemoval.isPending ||
@@ -913,10 +922,7 @@ export function RolesPage() {
                   Boolean(selectedRemovalMember.removed_tx_hash) ||
                   Boolean(lastRemovalHash)
                 }
-              >
-                <UserMinus size={15} />
-                {lastRemovalHash ? "Submitted" : "Remove role"}
-              </Button>
+              />
             </div>
           </div>
         )}
@@ -1126,10 +1132,14 @@ export function RolesPage() {
                         <ArrowLeft size={15} />
                         Back
                       </Button>
-                      <Button type="submit" disabled={prepare.isPending || confirm.isPending || txSender.busy || roleAlreadyAssigned || !roleEmailLooksValid || Boolean(lastRoleHash)}>
-                        <UsersRound size={16} />
-                        {roleAlreadyAssigned ? "Role already assigned" : lastRoleHash ? "Submitted" : "Submit role"}
-                      </Button>
+                      <TransactionButton
+                        type="submit"
+                        isProcessing={prepare.isPending || confirm.isPending || txSender.busy}
+                        idleLabel={roleAlreadyAssigned ? "Role already assigned" : lastRoleHash ? "Submitted" : "Submit role"}
+                        processingLabel="Processing assignment..."
+                        icon={UsersRound}
+                        disabled={roleAlreadyAssigned || !roleEmailLooksValid || Boolean(lastRoleHash)}
+                      />
                     </div>
                   </div>
                 )}
@@ -2732,10 +2742,15 @@ function saveRecurringDetails() {
               )}
 
               {wizardPhase === 2 && (
-                <Button disabled={busy || create.isPending || txSender.busy} type="submit" className="create-payroll-footer-next">
-                  <span>{busy || create.isPending || txSender.busy ? submitStatus || "Creating on-chain..." : "Create On-chain"}</span>
-                  <Check size={15} strokeWidth={2} />
-                </Button>
+                <TransactionButton
+                  disabled={busy || create.isPending || txSender.busy}
+                  type="submit"
+                  className="create-payroll-footer-next"
+                  isProcessing={busy || create.isPending || txSender.busy}
+                  idleLabel="Create On-chain"
+                  processingLabel={submitStatus || "Creating on-chain..."}
+                  icon={ArrowRight}
+                />
               )}
             </div>
           </div>
@@ -2924,6 +2939,7 @@ export function HRPayrollDetailPage() {
     prepare.isPending ||
     confirm.isPending ||
     txSender.busy;
+  const transactionBusy = prepare.isPending || confirm.isPending || txSender.busy;
   const nextAction = (() => {
     if (!hasRows || !hasRoot) {
       return {
@@ -3048,17 +3064,21 @@ export function HRPayrollDetailPage() {
             <span>{nextAction.description}</span>
           </div>
           {nextAction.button && (
-            <Button
+            <TransactionButton
               type="button"
               className="run-detail-primary-action"
               onClick={nextAction.onClick}
+              isProcessing={transactionBusy}
+              idleLabel={nextAction.button}
+              processingLabel={
+                txSender.busy
+                  ? "Confirming transaction..."
+                  : prepare.isPending
+                    ? "Preparing transaction..."
+                    : "Finalizing..."
+              }
               disabled={nextAction.disabled}
-            >
-              {nextAction.icon}
-              <span>
-                {anyBusy && !hasFundingReady ? "Working..." : nextAction.button}
-              </span>
-            </Button>
+            />
           )}
         </div>
 
@@ -3335,10 +3355,22 @@ export function FinancePayrollDetailPage() {
                 : `Funding opens ${formatDate(run.data.funding_starts_at)}.`}
             </span>
           </div>
-          <Button type="button" className="run-detail-primary-action" onClick={fund} disabled={txSender.busy || prepare.isPending || confirm.isPending || run.data.status !== "funding_ready" || !fundingIsOpen}>
-            <Landmark size={16} />
-            {fundingIsOpen ? "Fund payroll" : "Waiting"}
-          </Button>
+          <TransactionButton
+            type="button"
+            className="run-detail-primary-action"
+            onClick={fund}
+            isProcessing={txSender.busy || prepare.isPending || confirm.isPending}
+            idleLabel={fundingIsOpen ? "Fund payroll" : "Waiting"}
+            processingLabel={
+              txSender.busy
+                ? "Confirm in wallet..."
+                : confirm.isPending
+                  ? "Confirming transaction..."
+                  : "Preparing funding..."
+            }
+            icon={Landmark}
+            disabled={txSender.busy || prepare.isPending || confirm.isPending || run.data.status !== "funding_ready" || !fundingIsOpen}
+          />
         </div>
 
         <TransactionProofActivity
@@ -3567,10 +3599,22 @@ export function ClaimDetailPage() {
                     : "Loading claim details."}
             </span>
           </div>
-          <Button type="button" className="run-detail-primary-action" onClick={claimPayment} disabled={!isClaimable || !paymentId || payload.isLoading || payload.isFetching || txSender.busy || confirm.isPending}>
-            <CircleDollarSign size={16} />
-            {currentClaimStatus === "claimed" ? "Claimed" : currentClaimStatus === "pending" ? "Pending" : "Claim payment"}
-          </Button>
+          <TransactionButton
+            type="button"
+            className="run-detail-primary-action"
+            onClick={claimPayment}
+            isProcessing={payload.isFetching || txSender.busy || confirm.isPending}
+            idleLabel={currentClaimStatus === "claimed" ? "Claimed" : currentClaimStatus === "pending" ? "Pending" : "Claim payment"}
+            processingLabel={
+              txSender.busy
+                ? "Confirm in wallet..."
+                : confirm.isPending
+                  ? "Confirming transaction..."
+                  : "Preparing claim..."
+            }
+            icon={CircleDollarSign}
+            disabled={!isClaimable || !paymentId || payload.isLoading || payload.isFetching || txSender.busy || confirm.isPending}
+          />
         </div>
         <TransactionProofActivity
           title="Claim"

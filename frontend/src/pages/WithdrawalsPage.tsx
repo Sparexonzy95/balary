@@ -38,6 +38,7 @@ import {
 } from "../components/ui";
 import { TransactionExplorerLink } from "../components/TransactionExplorerLink";
 import { TransactionActivity } from "../components/TransactionActivity";
+import { TransactionButton } from "../components/TransactionButton";
 
 const TERMINAL_WITHDRAWAL_STATUSES = new Set([
   "finalized",
@@ -374,14 +375,15 @@ export function NewPrivateWithdrawalPage() {
               label="View payroll transaction"
             />
           </div>
-          <Button
+          <TransactionButton
             type="submit"
             className="run-detail-primary-action"
+            isProcessing={prepare.isPending || submitPrepared.isPending}
+            idleLabel="Withdraw full salary"
+            processingLabel={phase}
+            icon={ShieldCheck}
             disabled={prepare.isPending || submitPrepared.isPending || !context.data}
-          >
-            <ShieldCheck size={16} />
-            {prepare.isPending || submitPrepared.isPending ? phase : "Withdraw full salary"}
-          </Button>
+          />
         </div>
 
         {(error || context.error) && (
@@ -525,27 +527,29 @@ export function PrivateWithdrawalDetailPage() {
             </div>
 
             {waitingForSignature && (
-              <Button
+              <TransactionButton
                 type="button"
                 className="run-detail-primary-action"
                 onClick={signAuthorization}
+                isProcessing={submit.isPending}
+                idleLabel="Sign authorization"
+                processingLabel="Confirm in wallet..."
+                icon={ShieldCheck}
                 disabled={submit.isPending}
-              >
-                <ShieldCheck size={16} />
-                {submit.isPending ? "Signing..." : "Sign authorization"}
-              </Button>
+              />
             )}
 
             {processable && (
-              <Button
+              <TransactionButton
                 type="button"
                 className="run-detail-primary-action"
                 onClick={processRequest}
+                isProcessing={process.isPending}
+                idleLabel="Process withdrawal"
+                processingLabel="Processing withdrawal..."
+                icon={RefreshCw}
                 disabled={process.isPending}
-              >
-                <RefreshCw size={16} />
-                {process.isPending ? "Processing..." : "Process withdrawal"}
-              </Button>
+              />
             )}
           </div>
         )}
