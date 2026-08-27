@@ -1,0 +1,16 @@
+node_modules/
+generated/
+.cache/
+.env
+*.log
+.DS_Store
+
+# Midnight local/private state
+*.ldb
+*.db
+midnight-db/
+private-state/
+private-states/
+
+# Midnight local state
+midnight-level-db/

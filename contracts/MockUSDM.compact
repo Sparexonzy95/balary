@@ -1,0 +1,62 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+// Development-only public stablecoin used to exercise Balary locally.
+// Production/Preview integration supplies the real external USDM token color
+// directly to BalaryStablecoinGateway instead.
+
+export ledger tokenColor: Bytes<32>;
+export ledger initialized: Boolean;
+export sealed ledger ownerAuthority: Bytes<32>;
+
+constructor(ownerSecret: Bytes<32>) {
+  ownerAuthority = disclose(deriveOwnerAuthority(ownerSecret));
+  initialized = false;
+}
+
+export pure circuit deriveOwnerAuthority(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "balary:mock-usdm:owner:v1"),
+    secret
+  ]);
+}
+
+circuit assertOwner(secret: Bytes<32>): [] {
+  assert(ownerAuthority == deriveOwnerAuthority(secret), "not MockUSDM owner");
+}
+
+// Mint public MockUSDM into the contract itself. Keeping mint authority here
+// lets tests deterministically create supply without relying on a faucet.
+export circuit mint(ownerSecret: Bytes<32>, amount: Uint<64>): [] {
+  assertOwner(ownerSecret);
+  assert(disclose(amount) > 0, "mint amount must be non-zero");
+
+  const color = mintUnshieldedToken(
+    pad(32, "balary:mock-usdm:token:v1"),
+    disclose(amount),
+    left<ContractAddress, UserAddress>(kernel.self())
+  );
+
+  tokenColor = color;
+  initialized = true;
+}
+
+// Send MockUSDM from the contract treasury to a local test wallet.
+export circuit transfer(
+  ownerSecret: Bytes<32>,
+  recipient: UserAddress,
+  amount: Uint<128>
+): [] {
+  assertOwner(ownerSecret);
+  assert(initialized, "MockUSDM has not been minted");
+  assert(disclose(amount) > 0, "transfer amount must be non-zero");
+  assert(unshieldedBalanceGte(tokenColor, disclose(amount)), "insufficient MockUSDM balance");
+
+  sendUnshielded(
+    tokenColor,
+    disclose(amount),
+    right<ContractAddress, UserAddress>(disclose(recipient))
+  );
+}

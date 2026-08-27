@@ -1,0 +1,122 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+// Balary Stablecoin Gateway
+//
+// Economic invariant:
+//   USDM locked by this gateway == outstanding redeemable zUSDM
+//
+// zUSDM is not an independent stablecoin. It is a shielded 1:1 representation
+// of USDM held by this contract.
+
+export sealed ledger usdmColor: Bytes<32>;
+export ledger totalLocked: Uint<128>;
+export ledger totalOutstanding: Uint<128>;
+export ledger mintSerial: Uint<128>;
+export ledger depositCount: Counter;
+export ledger redemptionCount: Counter;
+
+constructor(_usdmColor: Bytes<32>) {
+  assert(disclose(_usdmColor) != default<Bytes<32>>, "USDM color cannot be native/default token");
+  usdmColor = disclose(_usdmColor);
+  totalLocked = 0;
+  totalOutstanding = 0;
+  mintSerial = 0;
+}
+
+// The globally namespaced shielded token color controlled by this gateway.
+export circuit zUSDMColor(): Bytes<32> {
+  return tokenType(pad(32, "balary:zusdm:v1"), kernel.self());
+}
+
+// Deposit public USDM and receive exactly the same amount of shielded zUSDM.
+// The deposit amount is intentionally public because USDM is unshielded.
+// nonceSeed remains private; only the derived nonce is disclosed to the
+// shielded-token primitive.
+export circuit depositUSDM(amount: Uint<64>, nonceSeed: Bytes<32>): [] {
+  const publicAmount = disclose(amount) as Uint<128>;
+  assert(publicAmount > 0, "deposit amount must be non-zero");
+
+  // Validate that reserves from all previous transactions are still at least
+  // the amount Balary says is locked before accepting new backing.
+  assert(
+    unshieldedBalanceGte(usdmColor, totalLocked),
+    "gateway USDM reserve is below recorded locked amount"
+  );
+  assert(totalLocked == totalOutstanding, "gateway accounting invariant broken");
+
+  // Require the caller's transaction to transfer real USDM into this contract.
+  receiveUnshielded(usdmColor, publicAmount);
+
+  // Mint zUSDM to this contract, then immediately send the complete fresh coin
+  // to the current caller. Sending the full value means there is no change coin.
+  const nonce = disclose(evolveNonce(mintSerial, nonceSeed));
+  const freshCoin = mintShieldedToken(
+    pad(32, "balary:zusdm:v1"),
+    disclose(amount),
+    nonce,
+    right<ZswapCoinPublicKey, ContractAddress>(kernel.self())
+  );
+
+  sendImmediateShielded(
+    freshCoin,
+    left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()),
+    freshCoin.value
+  );
+
+  totalLocked = (totalLocked + publicAmount) as Uint<128>;
+  totalOutstanding = (totalOutstanding + publicAmount) as Uint<128>;
+  mintSerial = (mintSerial + 1) as Uint<128>;
+  depositCount.increment(1);
+
+  assert(totalLocked == totalOutstanding, "gateway accounting invariant broken after deposit");
+}
+
+// Redeem shielded zUSDM for public USDM.
+//
+// The caller creates a fresh zUSDM output addressed to this gateway in the same
+// transaction. The gateway receives that fresh coin, burns the complete coin,
+// and releases equal USDM to the requested public address.
+//
+// This atomic receive-and-burn path is intentionally the FIRST live-network
+// experiment for Balary. If the current runtime rejects consuming a received
+// fresh coin in the same call, the implementation falls back to the documented committed-
+// coin request/finalize path without changing the 1:1 economic architecture.
+export circuit redeemZUSDM(coin: ShieldedCoinInfo, usdmRecipient: UserAddress): [] {
+  assert(coin.color == zUSDMColor(), "wrong shielded token: expected zUSDM");
+  assert(coin.value > 0, "redemption amount must be non-zero");
+
+  const publicAmount = disclose(coin.value);
+  assert(totalLocked == totalOutstanding, "gateway accounting invariant broken");
+  assert(totalOutstanding >= publicAmount, "redemption exceeds outstanding zUSDM");
+  assert(totalLocked >= publicAmount, "redemption exceeds locked USDM");
+  assert(
+    unshieldedBalanceGte(usdmColor, totalLocked),
+    "gateway USDM reserve is below recorded locked amount"
+  );
+
+  // Require the zUSDM coin to be an output addressed to this gateway.
+  receiveShielded(disclose(coin));
+
+  // Destroy the entire received zUSDM coin. Full burn means no change coin.
+  sendImmediateShielded(
+    disclose(coin),
+    shieldedBurnAddress(),
+    publicAmount
+  );
+
+  // Release the exact same amount of public USDM.
+  sendUnshielded(
+    usdmColor,
+    publicAmount,
+    right<ContractAddress, UserAddress>(disclose(usdmRecipient))
+  );
+
+  totalLocked = totalLocked - publicAmount;
+  totalOutstanding = totalOutstanding - publicAmount;
+  redemptionCount.increment(1);
+
+  assert(totalLocked == totalOutstanding, "gateway accounting invariant broken after redemption");
+}

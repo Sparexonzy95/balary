@@ -1,0 +1,494 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+// One BalaryPayrollVault instance represents one payroll run for one institution.
+//
+// Institutional separation of duties:
+//   ADMIN   -> controls role rotation and high-risk payroll cancellation
+//   HR      -> approves private salary instructions
+//   FINANCE -> funds approved salary instructions and recovers unclaimed funds
+//   EMPLOYEE-> privately claims only their own approved salary allocation
+//
+// Role secrets are never stored in ledger state. Only secret-derived authority
+// commitments are stored. Salary amounts and employee identities are never
+// written directly to public ledger state.
+
+export enum PayrollState {
+  FUNDING,
+  ACTIVE,
+  COMPLETED,
+  CANCELLED,
+  EXPIRED,
+  CLOSED
+}
+
+struct SalaryIntentData {
+  payrollId: Bytes<32>;
+  employeeKey: Bytes<32>;
+  salaryValue: Uint<128>;
+  allocationId: Bytes<32>;
+  allocationBlind: Bytes<32>;
+}
+
+struct AllocationData {
+  payrollId: Bytes<32>;
+  employeeKey: Bytes<32>;
+  coinNonce: Bytes<32>;
+  coinColor: Bytes<32>;
+  coinValue: Uint<128>;
+}
+
+export sealed ledger institutionId: Bytes<32>;
+export sealed ledger payrollId: Bytes<32>;
+export sealed ledger gatewayAddress: ContractAddress;
+export sealed ledger zUSDMColor: Bytes<32>;
+
+// Public commitments to private institutional role secrets.
+export ledger adminAuthority: Bytes<32>;
+export ledger hrAuthority: Bytes<32>;
+export ledger financeAuthority: Bytes<32>;
+
+export sealed ledger expectedAllocations: Uint<16>;
+export sealed ledger claimDeadline: Uint<64>;
+
+export ledger payrollState: PayrollState;
+
+// HR-approved salary instructions. The commitment is blinded, so the public
+// Set does not reveal employee identity, salary amount, or the claim blind.
+export ledger approvedIntents: Set<Bytes<32>>;
+export ledger fundedIntents: Set<Bytes<32>>;
+
+// Funded salary allocation commitments used for private employee claims.
+export ledger allocations: MerkleTree<20, Bytes<32>>;
+
+export ledger claimNullifiers: Set<Bytes<32>>;
+export ledger recoveryNullifiers: Set<Bytes<32>>;
+
+export ledger approvedCount: Counter;
+export ledger fundedCount: Counter;
+export ledger claimedCount: Counter;
+export ledger recoveredCount: Counter;
+export ledger settledCount: Counter;
+
+constructor(
+  _institutionId: Bytes<32>,
+  _payrollId: Bytes<32>,
+  _gatewayAddress: ContractAddress,
+  _expectedAllocations: Uint<16>,
+  _claimDeadline: Uint<64>,
+  _adminAuthority: Bytes<32>,
+  _hrAuthority: Bytes<32>,
+  _financeAuthority: Bytes<32>
+) {
+  assert(disclose(_institutionId) != default<Bytes<32>>, "institution id is required");
+  assert(disclose(_payrollId) != default<Bytes<32>>, "payroll id is required");
+  assert(disclose(_expectedAllocations) > 0, "payroll must contain at least one allocation");
+  assert(blockTimeLt(disclose(_claimDeadline)), "claim deadline must be in the future");
+
+  assert(disclose(_adminAuthority) != default<Bytes<32>>, "admin authority is required");
+  assert(disclose(_hrAuthority) != default<Bytes<32>>, "HR authority is required");
+  assert(disclose(_financeAuthority) != default<Bytes<32>>, "finance authority is required");
+
+  institutionId = disclose(_institutionId);
+  payrollId = disclose(_payrollId);
+  gatewayAddress = disclose(_gatewayAddress);
+  zUSDMColor = tokenType(pad(32, "balary:zusdm:v1"), disclose(_gatewayAddress));
+
+  adminAuthority = disclose(_adminAuthority);
+  hrAuthority = disclose(_hrAuthority);
+  financeAuthority = disclose(_financeAuthority);
+
+  expectedAllocations = disclose(_expectedAllocations);
+  claimDeadline = disclose(_claimDeadline);
+  payrollState = PayrollState.FUNDING;
+}
+
+// ---------- Institutional role helpers ----------
+
+export pure circuit deriveAdminAuthority(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "balary:institution:admin:v1"),
+    secret
+  ]);
+}
+
+export pure circuit deriveHrAuthority(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "balary:institution:hr:v1"),
+    secret
+  ]);
+}
+
+export pure circuit deriveFinanceAuthority(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "balary:institution:finance:v1"),
+    secret
+  ]);
+}
+
+circuit assertAdmin(adminSecret: Bytes<32>): [] {
+  assert(
+    adminAuthority == deriveAdminAuthority(adminSecret),
+    "not authorized as institution admin"
+  );
+}
+
+circuit assertHr(hrSecret: Bytes<32>): [] {
+  assert(
+    hrAuthority == deriveHrAuthority(hrSecret),
+    "not authorized as institution HR"
+  );
+}
+
+circuit assertFinance(financeSecret: Bytes<32>): [] {
+  assert(
+    financeAuthority == deriveFinanceAuthority(financeSecret),
+    "not authorized as institution finance"
+  );
+}
+
+// Admin rotates role authorities using new public authority commitments.
+// The admin never needs to know the new HR or Finance secret.
+export circuit rotateAdminAuthority(
+  adminSecret: Bytes<32>,
+  newAdminAuthority: Bytes<32>
+): [] {
+  assertAdmin(adminSecret);
+  assert(disclose(newAdminAuthority) != default<Bytes<32>>, "new admin authority is required");
+  adminAuthority = disclose(newAdminAuthority);
+}
+
+export circuit rotateHrAuthority(
+  adminSecret: Bytes<32>,
+  newHrAuthority: Bytes<32>
+): [] {
+  assertAdmin(adminSecret);
+  assert(disclose(newHrAuthority) != default<Bytes<32>>, "new HR authority is required");
+  hrAuthority = disclose(newHrAuthority);
+}
+
+export circuit rotateFinanceAuthority(
+  adminSecret: Bytes<32>,
+  newFinanceAuthority: Bytes<32>
+): [] {
+  assertAdmin(adminSecret);
+  assert(disclose(newFinanceAuthority) != default<Bytes<32>>, "new finance authority is required");
+  financeAuthority = disclose(newFinanceAuthority);
+}
+
+// ---------- Identity and commitment helpers ----------
+
+export pure circuit deriveEmployeeKey(secret: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([
+    pad(32, "balary:payroll:employee:v1"),
+    secret
+  ]);
+}
+
+circuit salaryIntentCommitment(
+  employeeKey: Bytes<32>,
+  salaryValue: Uint<128>,
+  allocationId: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  intentBlind: Bytes<32>
+): Bytes<32> {
+  const data = SalaryIntentData {
+    payrollId: payrollId,
+    employeeKey: employeeKey,
+    salaryValue: salaryValue,
+    allocationId: allocationId,
+    allocationBlind: allocationBlind
+  };
+  return persistentCommit<SalaryIntentData>(data, intentBlind);
+}
+
+circuit allocationCommitment(
+  employeeKey: Bytes<32>,
+  coinNonce: Bytes<32>,
+  coinColor: Bytes<32>,
+  coinValue: Uint<128>,
+  blind: Bytes<32>
+): Bytes<32> {
+  const data = AllocationData {
+    payrollId: payrollId,
+    employeeKey: employeeKey,
+    coinNonce: coinNonce,
+    coinColor: coinColor,
+    coinValue: coinValue
+  };
+  return persistentCommit<AllocationData>(data, blind);
+}
+
+circuit claimNullifier(employeeSecret: Bytes<32>, coinNonce: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<4, Bytes<32>>>([
+    pad(32, "balary:salary:nullifier:v1"),
+    payrollId,
+    coinNonce,
+    employeeSecret
+  ]);
+}
+
+// Recovery nullifiers do not depend on the Finance secret. This means a valid
+// Finance role rotation cannot create a second recovery identity for the same
+// salary coin.
+circuit recoveryNullifier(coinNonce: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>([
+    pad(32, "balary:salary:recovery:v1"),
+    payrollId,
+    coinNonce
+  ]);
+}
+
+circuit assertAllocationMembership(
+  employeeKey: Bytes<32>,
+  coinNonce: Bytes<32>,
+  coinColor: Bytes<32>,
+  coinValue: Uint<128>,
+  blind: Bytes<32>,
+  path: MerkleTreePath<20, Bytes<32>>
+): [] {
+  const commitment = allocationCommitment(
+    employeeKey,
+    coinNonce,
+    coinColor,
+    coinValue,
+    blind
+  );
+
+  assert(path.leaf == commitment, "allocation path is not bound to supplied private allocation");
+  assert(
+    allocations.checkRoot(disclose(merkleTreePathRoot<20, Bytes<32>>(path))),
+    "allocation is not in this payroll"
+  );
+}
+
+// ---------- HR approval ----------
+
+// HR privately approves one salary instruction before Finance can fund it.
+// The approval binds the employee, exact salary value, allocation id, and the
+// allocation blind that the employee will later use to claim. Only a blinded
+// commitment is inserted into public ledger state.
+export circuit approveAllocation(
+  hrSecret: Bytes<32>,
+  employeeKey: Bytes<32>,
+  salaryValue: Uint<128>,
+  allocationId: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  intentBlind: Bytes<32>
+): [] {
+  assertHr(hrSecret);
+  assert(payrollState == PayrollState.FUNDING, "payroll is not accepting approvals");
+  assert(approvedCount.lessThan(expectedAllocations as Uint<64>), "all expected allocations already approved");
+  assert(salaryValue > 0, "salary amount must be non-zero");
+
+  const intent = salaryIntentCommitment(
+    employeeKey,
+    salaryValue,
+    allocationId,
+    allocationBlind,
+    intentBlind
+  );
+
+  assert(!approvedIntents.member(disclose(intent)), "salary allocation already approved");
+  approvedIntents.insert(disclose(intent));
+  approvedCount.increment(1);
+}
+
+// ---------- Finance funding ----------
+
+// Finance may fund only an exact salary instruction previously approved by HR.
+// The supplied zUSDM coin value must match the amount inside the HR-approved
+// intent. The same approved intent cannot be funded twice.
+export circuit fundAllocation(
+  financeSecret: Bytes<32>,
+  employeeKey: Bytes<32>,
+  salaryCoin: ShieldedCoinInfo,
+  allocationId: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  intentBlind: Bytes<32>
+): [] {
+  assertFinance(financeSecret);
+  assert(payrollState == PayrollState.FUNDING, "payroll is not accepting funding");
+  assert(fundedCount.lessThan(expectedAllocations as Uint<64>), "all expected allocations already funded");
+  assert(salaryCoin.color == zUSDMColor, "salary coin must be Balary zUSDM");
+  assert(salaryCoin.value > 0, "salary amount must be non-zero");
+
+  const intent = salaryIntentCommitment(
+    employeeKey,
+    salaryCoin.value,
+    allocationId,
+    allocationBlind,
+    intentBlind
+  );
+
+  assert(approvedIntents.member(disclose(intent)), "salary allocation was not approved by HR");
+  assert(!fundedIntents.member(disclose(intent)), "approved salary allocation already funded");
+
+  // Require one exact shielded zUSDM output addressed to this payroll vault.
+  receiveShielded(disclose(salaryCoin));
+
+  // The employee claim commitment is bound to the exact funded coin.
+  const commitment = allocationCommitment(
+    employeeKey,
+    salaryCoin.nonce,
+    salaryCoin.color,
+    salaryCoin.value,
+    allocationBlind
+  );
+
+  allocations.insert(commitment);
+  fundedIntents.insert(disclose(intent));
+  fundedCount.increment(1);
+
+  // Partial payrolls never become claimable.
+  if (
+    approvedCount.read() == (expectedAllocations as Uint<64>) &&
+    fundedCount.read() == (expectedAllocations as Uint<64>)
+  ) {
+    payrollState = PayrollState.ACTIVE;
+  }
+}
+
+// ---------- Employee claim ----------
+
+export circuit claimSalary(
+  employeeSecret: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  salaryCoin: QualifiedShieldedCoinInfo,
+  allocationPath: MerkleTreePath<20, Bytes<32>>
+): [] {
+  assert(payrollState == PayrollState.ACTIVE, "payroll is not active");
+  assert(blockTimeLte(claimDeadline), "claim deadline has passed");
+  assert(salaryCoin.color == zUSDMColor, "salary coin must be Balary zUSDM");
+
+  const employeeKey = deriveEmployeeKey(employeeSecret);
+  assertAllocationMembership(
+    employeeKey,
+    salaryCoin.nonce,
+    salaryCoin.color,
+    salaryCoin.value,
+    allocationBlind,
+    allocationPath
+  );
+
+  const nul = claimNullifier(employeeSecret, salaryCoin.nonce);
+  assert(!claimNullifiers.member(disclose(nul)), "salary allocation already claimed");
+  claimNullifiers.insert(disclose(nul));
+
+  sendShielded(
+    disclose(salaryCoin),
+    left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()),
+    disclose(salaryCoin.value)
+  );
+
+  claimedCount.increment(1);
+  settledCount.increment(1);
+
+  if (claimedCount.read() == (expectedAllocations as Uint<64>)) {
+    payrollState = PayrollState.COMPLETED;
+  }
+}
+
+// ---------- Cancellation and recovery ----------
+
+// Only Institution Admin may cancel a payroll, and only while it is still in
+// FUNDING. Once every allocation is funded and ACTIVE, cancellation is blocked.
+export circuit cancelPayroll(adminSecret: Bytes<32>): [] {
+  assertAdmin(adminSecret);
+  assert(payrollState == PayrollState.FUNDING, "only a funding payroll can be cancelled");
+
+  if (fundedCount.read() == 0) {
+    payrollState = PayrollState.CLOSED;
+  } else {
+    payrollState = PayrollState.CANCELLED;
+  }
+}
+
+// Only Finance can move cancelled payroll funds back to institutional control.
+export circuit recoverCancelledAllocation(
+  financeSecret: Bytes<32>,
+  employeeKey: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  salaryCoin: QualifiedShieldedCoinInfo,
+  allocationPath: MerkleTreePath<20, Bytes<32>>
+): [] {
+  assertFinance(financeSecret);
+  assert(payrollState == PayrollState.CANCELLED, "payroll is not cancelled");
+  assert(salaryCoin.color == zUSDMColor, "salary coin must be Balary zUSDM");
+
+  assertAllocationMembership(
+    employeeKey,
+    salaryCoin.nonce,
+    salaryCoin.color,
+    salaryCoin.value,
+    allocationBlind,
+    allocationPath
+  );
+
+  const nul = recoveryNullifier(salaryCoin.nonce);
+  assert(!recoveryNullifiers.member(disclose(nul)), "allocation already recovered");
+  recoveryNullifiers.insert(disclose(nul));
+
+  sendShielded(
+    disclose(salaryCoin),
+    left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()),
+    disclose(salaryCoin.value)
+  );
+
+  recoveredCount.increment(1);
+
+  if (recoveredCount.read() == fundedCount.read()) {
+    payrollState = PayrollState.CLOSED;
+  }
+}
+
+// After the deadline, Finance can recover only salary coins that remain
+// unspent. A salary coin already claimed by an employee has already been
+// consumed by Zswap and therefore cannot be spent again.
+export circuit recoverExpiredAllocation(
+  financeSecret: Bytes<32>,
+  employeeKey: Bytes<32>,
+  allocationBlind: Bytes<32>,
+  salaryCoin: QualifiedShieldedCoinInfo,
+  allocationPath: MerkleTreePath<20, Bytes<32>>
+): [] {
+  assertFinance(financeSecret);
+  assert(
+    payrollState == PayrollState.ACTIVE || payrollState == PayrollState.EXPIRED,
+    "payroll cannot recover expired allocations in current state"
+  );
+  assert(blockTimeGt(claimDeadline), "claim deadline has not passed");
+  assert(salaryCoin.color == zUSDMColor, "salary coin must be Balary zUSDM");
+
+  if (payrollState == PayrollState.ACTIVE) {
+    payrollState = PayrollState.EXPIRED;
+  }
+
+  assertAllocationMembership(
+    employeeKey,
+    salaryCoin.nonce,
+    salaryCoin.color,
+    salaryCoin.value,
+    allocationBlind,
+    allocationPath
+  );
+
+  const nul = recoveryNullifier(salaryCoin.nonce);
+  assert(!recoveryNullifiers.member(disclose(nul)), "allocation already recovered");
+  recoveryNullifiers.insert(disclose(nul));
+
+  sendShielded(
+    disclose(salaryCoin),
+    left<ZswapCoinPublicKey, ContractAddress>(ownPublicKey()),
+    disclose(salaryCoin.value)
+  );
+
+  recoveredCount.increment(1);
+  settledCount.increment(1);
+
+  if (settledCount.read() == (expectedAllocations as Uint<64>)) {
+    payrollState = PayrollState.CLOSED;
+  }
+}
