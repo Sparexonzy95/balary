@@ -324,7 +324,7 @@ async function main(): Promise<void> {
     const providers = buildProviders(
       wallet,
       payrollZkConfigPath,
-      `balary-payroll-${Date.now()}`,
+      'balary-payroll-private-state',
       config,
     );
 

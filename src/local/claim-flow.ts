@@ -343,9 +343,41 @@ async function main(): Promise<void> {
       buildProviders(
         wallet,
         payrollZkConfigPath,
-        `balary-claim-${Date.now()}`,
+        'balary-payroll-private-state',
         config,
       );
+
+    /*
+     * Balary currently uses vacant witnesses and an empty
+     * Midnight.js private-state object. The institutional
+     * and employee secrets are explicit private circuit
+     * arguments, not values stored here.
+     *
+     * This also lets this already-active local payroll
+     * continue after the earlier runner used a different
+     * LevelDB store name.
+     */
+    providers.privateStateProvider.setContractAddress(
+      saved.payrollAddress,
+    );
+
+    const privateStateId = 'balary-payroll';
+
+    const existingPrivateState =
+      await providers.privateStateProvider.get(
+        privateStateId,
+      );
+
+    if (existingPrivateState === null) {
+      await providers.privateStateProvider.set(
+        privateStateId,
+        {},
+      );
+
+      logger.info(
+        'Initialized empty Balary Payroll private state',
+      );
+    }
 
     /*
      * ----------------------------------------
