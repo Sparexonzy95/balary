@@ -19,7 +19,9 @@
     "env:up": "docker compose up -d --wait",
     "env:down": "docker compose down",
     "gate": "./scripts/quality-gate.sh",
-    "local:gateway": "tsx src/local/gateway-flow.ts"
+    "local:gateway": "tsx src/local/gateway-flow.ts",
+    "local:payroll": "tsx src/local/payroll-flow.ts",
+    "local:claim": "tsx src/local/claim-flow.ts"
   },
   "engines": {
     "node": ">=22"
