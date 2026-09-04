@@ -23,7 +23,8 @@
     "local:payroll": "tsx src/local/payroll-flow.ts",
     "local:claim": "tsx src/local/claim-flow.ts",
     "local:redeem": "tsx src/local/redeem-flow.ts",
-    "preview:gateway": "tsx src/preview/gateway-flow.ts"
+    "preview:gateway": "tsx src/preview/gateway-flow.ts",
+    "preview:payroll": "tsx src/preview/payroll-flow.ts"
   },
   "engines": {
     "node": ">=22"

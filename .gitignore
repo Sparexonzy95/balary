@@ -16,3 +16,4 @@ private-states/
 midnight-level-db/
 wallet-state.json
 wallet-state.mainnet.json
+wallet-state.via-backup.json
