@@ -368,17 +368,21 @@ export async function buildPreviewWallet(
               ),
         );
 
-      return wallet
-        .finalizeRecipe(
+      const finalized =
+        await wallet.finalizeRecipe(
           signedRecipe,
         );
+
+      return finalized;
     },
 
-    submitTx(tx: any) {
-      return wallet
-        .submitTransaction(
+    async submitTx(tx: any) {
+      const result =
+        await wallet.submitTransaction(
           tx,
         );
+
+      return result;
     },
 
     async stop(): Promise<void> {
