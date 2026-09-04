@@ -22,7 +22,8 @@
     "local:gateway": "tsx src/local/gateway-flow.ts",
     "local:payroll": "tsx src/local/payroll-flow.ts",
     "local:claim": "tsx src/local/claim-flow.ts",
-    "local:redeem": "tsx src/local/redeem-flow.ts"
+    "local:redeem": "tsx src/local/redeem-flow.ts",
+    "preview:gateway": "tsx src/preview/gateway-flow.ts"
   },
   "engines": {
     "node": ">=22"
@@ -40,6 +41,7 @@
     "@midnight-ntwrk/midnight-js-utils": "4.1.1",
     "@midnight-ntwrk/testkit-js": "4.1.1",
     "@midnight-ntwrk/wallet-sdk": "1.2.0",
+    "@via-labs-tech/usdm-bridge": "^1.1.0",
     "pino": "^9.0.0",
     "pino-pretty": "^13.0.0",
     "rxjs": "^7.8.2",

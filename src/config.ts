@@ -18,6 +18,27 @@ export const LOCAL_CONFIG: NetworkConfig = {
   faucet: '',
 };
 
+export const PREVIEW_CONFIG: NetworkConfig = {
+  networkId: 'preview',
+  indexer:
+    'https://indexer.preview.midnight.network/api/v4/graphql',
+  indexerWS:
+    'wss://indexer.preview.midnight.network/api/v4/graphql/ws',
+  node:
+    'https://rpc.preview.midnight.network',
+  nodeWS:
+    'wss://rpc.preview.midnight.network',
+  proofServer:
+    process.env['MIDNIGHT_PROOF_SERVER'] ??
+    'http://127.0.0.1:6300',
+  faucet:
+    'https://midnight-tmnight-preview.nethermind.dev/',
+};
+
 export function getLocalConfig(): NetworkConfig {
   return LOCAL_CONFIG;
+}
+
+export function getPreviewConfig(): NetworkConfig {
+  return PREVIEW_CONFIG;
 }

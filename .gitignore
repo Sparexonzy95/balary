@@ -14,3 +14,5 @@ private-states/
 
 # Midnight local state
 midnight-level-db/
+wallet-state.json
+wallet-state.mainnet.json
