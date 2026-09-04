@@ -96,6 +96,21 @@ Private by design:
 
 A later privacy-hardening pass can pad counts or batches if workforce-size metadata itself must be hidden.
 
+
+## Midnight Preview proof
+
+Balary has completed the full payroll lifecycle on Midnight Preview using real Preview USDM:
+
+- **Gateway:** `34c67f4d4bbd15ac8cb4fa267b1162b59038a344606f8d1b52813ad7ab35c0b4`
+- **Deposit:** 10 USDM -> 10 shielded zUSDM
+- **PayrollVault:** `1d5f51e61f0f990aabfcb5f4c91d0a416c3b9b091ab7fdf5f7712c931108a825`
+- **Salary funded:** 5 zUSDM
+- **Salary claim:** successful, payroll state `COMPLETED`
+- **Redemption:** 5 zUSDM -> 5 public USDM
+- **Final invariant:** 5 USDM locked = 5 zUSDM outstanding
+
+See [`docs/PREVIEW_PROOF.md`](docs/PREVIEW_PROOF.md) for transaction evidence and the complete Preview execution record.
+
 ## Fresh Buildathon codebase
 
 This repository is a clean Midnight implementation. The legacy Flare Balary sample is product/reference material only and is not copied into this codebase.
