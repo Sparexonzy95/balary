@@ -8,7 +8,7 @@ echo
 
 if ! command -v compact >/dev/null 2>&1; then
   echo "ERROR: Compact devtools are not installed or not on PATH."
-  echo "See docs/LOCAL_SETUP.md"
+  echo "See docs/guides/LOCAL_DEVELOPMENT.md"
   exit 2
 fi
 

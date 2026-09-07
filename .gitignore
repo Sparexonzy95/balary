@@ -2,6 +2,8 @@ node_modules/
 generated/
 .cache/
 .env
+.env.*
+!.env.example
 *.log
 .DS_Store
 
@@ -9,11 +11,15 @@ generated/
 *.ldb
 *.db
 midnight-db/
+midnight-level-db/
 private-state/
 private-states/
+wallet-state*.json
 
-# Midnight local state
-midnight-level-db/
-wallet-state.json
-wallet-state.mainnet.json
-wallet-state.via-backup.json
+# Credentials and private claim material
+*.mnemonic
+*.seed
+*.key
+*.pem
+private-claim*/
+payroll-claim*/
