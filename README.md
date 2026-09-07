@@ -1,6 +1,6 @@
 <div align="center">
 
-![Balary ? confidential institutional payroll on Midnight](docs/assets/balary-hero.svg)
+![Balary ? confidential institutional payroll on Midnight](docs/assets/balary-hero.png)
 
 # Balary
 
